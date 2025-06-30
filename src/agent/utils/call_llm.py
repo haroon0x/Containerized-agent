@@ -6,11 +6,12 @@ import logging
 
 from langchain_openai import ChatOpenAI
 
-load_dotenv()
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-GEMINI_MODEL = "gemini-2.5-flash"
+
 
 def call_llm_gemini(prompt):    
+    load_dotenv()
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+    GEMINI_MODEL = "gemini-2.5-flash"
     if not GEMINI_API_KEY:
         raise ValueError("GEMINI_API_KEY environment variable is not set")
     
