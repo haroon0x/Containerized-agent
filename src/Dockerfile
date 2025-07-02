@@ -1,10 +1,8 @@
 # --- Agent Container Dockerfile ---
 FROM ubuntu:22.04
 
-# Avoid interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install system dependencies
 RUN apt-get update && apt-get install -y \
     python3 python3-pip python3-venv \
     nodejs npm \
@@ -35,15 +33,13 @@ RUN useradd -ms /bin/bash agentuser \
 WORKDIR /home/agentuser/workspace
 RUN chown -R agentuser:agentuser /home/agentuser
 
-# Copy entrypoint script
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+# either use entrypoint.sh or supervisord.conf for starting all services 
+# COPY entrypoint.sh /entrypoint.sh
+COPY "supervisorvisord.conf" "/etc/supervisord.conf"
+#using supervisor since it relaods processes automatically if they fails
 
-# Switch to non-root user
 USER agentuser
 
-# Expose ports
 EXPOSE 6080 8888 8000
 
-# Entrypoint
-ENTRYPOINT ["/entrypoint.sh"] 
+ENTRYPOINT ["supervisord", "-c", "/etc/supervisord.conf"]

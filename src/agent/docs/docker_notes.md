@@ -58,8 +58,6 @@ This document explains the architectural choices and package selections made in 
 - **Alternatives:**
   - VS Code Server, Theia, RStudio Server, plain terminal with tmux/screen
 
-
-
 ### 7. **Supervisor**
 - **What is it?**
   - A process control system for UNIX.
@@ -99,3 +97,44 @@ This document explains the architectural choices and package selections made in 
 
 ## Why All This for a Coding Agent?
 - Many coding/automation tasks require GUI (e.g., xdot), and browser-based access (noVNC) makes the system accessible and easy to demo or use remotely. The combination of these tools is a proven pattern for secure, interactive, containerized agents. 
+
+---
+
+## Entrypoint Script vs. Supervisor for Process Management
+
+When running multiple services (like Xvfb, VNC, noVNC, Jupyter) inside a Docker container, you have two main options for starting and managing them:
+
+### 1. Entrypoint Script
+- **How it works:**
+  - A shell script (e.g., `entrypoint.sh`) starts each service in the background (using `&`), then uses `wait` to keep the container running.
+- **Pros:**
+  - Simple to write and understand.
+  - Good for quick demos or when running only one or two processes.
+- **Cons:**
+  - If any service crashes, it won't be automatically restarted.
+  - Harder to manage logs and monitor process health.
+
+### 2. Supervisor
+- **How it works:**
+  - Uses a process manager (Supervisor) with a config file (e.g., `supervisord.conf`) to start and monitor each service.
+  - Supervisor keeps all services running, restarts them if they fail, and manages logs for each process.
+- **Pros:**
+  - **Automatic restarts:** If a service crashes, Supervisor restarts it.
+  - **Centralized logging:** Each service's output is logged separately.
+  - **Better for production:** More robust and reliable for multi-service containers.
+- **Cons:**
+  - Slightly more complex setup (need a config file and Supervisor installed).
+
+### Which Should You Use?
+- **Use Entrypoint Script:** For simple, single-process containers or quick experiments.
+- **Use Supervisor:** For production, or whenever you need to run and manage multiple long-running services in one container.
+
+**Summary Table:**
+
+| Method           | Restarts on Crash | Log Management | Setup Complexity |
+|------------------|-------------------|----------------|------------------|
+| Entrypoint Script| No                | Manual         | Simple           |
+| Supervisor       | Yes               | Automatic      | Moderate         |
+
+**In this project:**
+- We recommend Supervisor for reliability and easier debugging when running Xvfb, VNC, noVNC, and Jupyter together. 
