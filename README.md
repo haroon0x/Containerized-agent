@@ -31,8 +31,9 @@ This system takes your natural language request (like "Create a Python script th
 
 ---
 
-## 🏗️ How It Works
+## 🏗️ System Architecture
 
+### High-Level Flow
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │   Your Request  │    │   Orchestrator   │    │  Agent Container │
@@ -50,6 +51,105 @@ This system takes your natural language request (like "Create a Python script th
                        └──────────────────┘
 ```
 
+### Detailed System Architecture
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           CLIENT LAYER                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐ │
+│  │   REST API  │    │   Web UI    │    │   CLI Tool  │    │   Scripts   │ │
+│  │   Client    │    │  Dashboard  │    │   Client    │    │   & Bots    │ │
+│  └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        ORCHESTRATOR LAYER                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                    FastAPI Orchestrator                            │   │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐ │   │
+│  │  │   /schedule │  │  /status/   │  │   /jobs     │  │  /cancel/   │ │   │
+│  │  │   Endpoint  │  │  Endpoint   │  │  Endpoint   │  │  Endpoint   │ │   │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘ │   │
+│  │                                                                       │   │
+│  │  ┌─────────────────────────────────────────────────────────────────┐   │   │
+│  │  │                    Job Manager                                 │   │   │
+│  │  │  • Job Scheduling    • Container Lifecycle    • Status Tracking│   │   │
+│  │  │  • Log Management    • Output Packaging       • Error Handling │   │   │
+│  │  └─────────────────────────────────────────────────────────────────┘   │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         CONTAINER LAYER                                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                    Agent Container                                 │   │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐ │   │
+│  │  │   Task      │  │   Shell     │  │   Python    │  │   Result    │ │   │
+│  │  │ Analysis    │  │  Command    │  │    Code     │  │ Compilation │ │   │
+│  │  │   Node      │  │   Node      │  │    Node     │  │    Node     │ │   │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘ │   │
+│  │                                                                       │   │
+│  │  ┌─────────────────────────────────────────────────────────────────┐   │   │
+│  │  │                    PocketFlow                                 │   │   │
+│  │  │  • Workflow Orchestration    • Node Execution    • Data Flow  │   │   │
+│  │  │  • Error Handling            • State Management  • Logging    │   │   │
+│  │  └─────────────────────────────────────────────────────────────────┘   │   │
+│  │                                                                       │   │
+│  │  ┌─────────────────────────────────────────────────────────────────┐   │   │
+│  │  │                    Execution Environment                        │   │   │
+│  │  │  • Python 3.11+    • Shell Access    • File System    • Network│   │   │
+│  │  │  • Package Manager  • Git Access      • Environment    • Permissions│   │   │
+│  │  └─────────────────────────────────────────────────────────────────┘   │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         MONITORING LAYER                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐ │
+│  │   noVNC     │    │   Jupyter   │    │   Log       │    │   Output    │ │
+│  │   Server    │    │    Lab      │    │  Streaming  │    │  Storage    │ │
+│  │ • Real-time │    │ • Interactive│   │ • Real-time │    │ • ZIP Files │ │
+│  │   GUI       │    │   Dev Env   │    │   Logs      │    │ • Downloads │ │
+│  └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         INFRASTRUCTURE LAYER                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐ │
+│  │   Docker    │    │   Volume    │    │   Network   │    │   Security   │ │
+│  │  Engine     │    │ Management  │    │  Isolation  │    │   Sandbox    │ │
+│  │ • Container │    │ • Persistent│    │ • Port      │    │ • Resource   │ │
+│  │   Runtime   │    │   Storage   │    │   Mapping   │    │   Limits     │ │
+│  └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Data Flow
+```
+1. CLIENT REQUEST
+   └── Natural language prompt sent to /schedule endpoint
+
+2. ORCHESTRATOR PROCESSING
+   └── Job Manager creates new job and spawns container
+
+3. AGENT EXECUTION
+   └── Task Analysis → Shell Commands → Python Code → Result Compilation
+
+4. MONITORING & OUTPUT
+   └── Real-time logs → VNC monitoring → Result packaging → Download links
+
+5. CLEANUP
+   └── Container termination → Resource cleanup → Log retention
+```
+
 ### The Flow
 1. **Task Analysis**: AI analyzes your prompt and creates a list of actions
 2. **Shell Execution**: Runs shell commands (npm install, git clone, etc.)
@@ -61,9 +161,9 @@ This system takes your natural language request (like "Create a Python script th
 ## 🚀 Quick Start
 
 ### 1. **Clone & Setup**
-```bash
-git clone <your-repo-url>
-cd containerized-agent
+   ```bash
+   git clone <your-repo-url>
+   cd containerized-agent
 
 # Create environment file
 cat > .env << EOF
@@ -75,12 +175,12 @@ EOF
 ```
 
 ### 2. **Launch the System**
-```bash
+   ```bash
 docker-compose up --build -d
-```
+   ```
 
 ### 3. **Test with a Simple Task**
-```bash
+   ```bash
 # Health check
 curl http://localhost:8000/
 
@@ -96,7 +196,7 @@ curl http://localhost:8000/status/{job_id}
 ### 4. **Access the Interfaces**
 - **API Docs**: http://localhost:8000/docs
 - **Live GUI**: http://localhost:6080 (watch your agent work!)
-- **Jupyter Lab**: http://localhost:8888
+   - **Jupyter Lab**: http://localhost:8888
 
 ---
 
@@ -112,10 +212,10 @@ curl http://localhost:8000/status/{job_id}
 | `POST /cancel/{id}` | Cancel running job | Stop a job in progress |
 
 ### Example Usage
-```bash
+   ```bash
 # Schedule a task
-curl -X POST http://localhost:8000/schedule \
-  -H "Content-Type: application/json" \
+   curl -X POST http://localhost:8000/schedule \
+     -H "Content-Type: application/json" \
   -d '{"prompt": "Create a simple web scraper in Python"}'
 
 # Check status
@@ -127,143 +227,27 @@ curl -O http://localhost:8000/download/abc123
 
 ---
 
-## 🎯 Real Use Cases
 
-### **Development & Prototyping**
-- **Quick Scripts**: "Create a Python script that processes CSV files"
-- **Data Analysis**: "Download stock data and create a simple chart"
-- **Web Scraping**: "Scrape a website and save the data to JSON"
-- **File Processing**: "Convert all images in a folder to thumbnails"
-
-### **Learning & Experimentation**
-- **Code Examples**: "Show me how to use pandas for data analysis"
-- **Algorithm Implementation**: "Implement quicksort in Python"
-- **API Testing**: "Create a script to test a REST API"
-
-### **Automation Tasks**
-- **File Organization**: "Sort files by type and create folders"
-- **Data Cleaning**: "Clean and validate a dataset"
-- **Report Generation**: "Generate a summary report from log files"
 
 ---
 
-## 🛠️ Technology Stack
 
-### **Core Components**
-- **FastAPI**: REST API for job management
-- **Docker**: Container isolation and execution
-- **Google Gemini**: AI for task analysis and execution
-- **PocketFlow**: Workflow orchestration framework
-
-### **Execution Environment**
-- **Python 3.11+**: Primary execution environment
-- **Shell Commands**: Full shell access in containers
-- **noVNC**: Real-time GUI monitoring
-- **Jupyter Lab**: Interactive development environment
-
-### **Infrastructure**
-- **Docker Compose**: Multi-service orchestration
-- **Volume Management**: Persistent job storage
-- **Logging**: Comprehensive execution tracking
 
 ---
 
-## 🔧 Configuration
 
-### **Environment Variables**
-```bash
-# Required
-GEMINI_API_KEY=your_api_key_here
-
-# Optional (with defaults)
-AGENT_IMAGE=containerized-agent:latest
-AGENT_OUTPUT_DIR=/tmp/agent_jobs
-RETENTION_DAYS=1
-```
-
-### **Resource Limits**
-```yaml
-# In docker-compose.yml
-services:
-  orchestrator:
-    deploy:
-      resources:
-        limits:
-          memory: 2G
-          cpus: '1.0'
-```
 
 ---
 
-## 🚨 Troubleshooting
 
-### **Common Issues**
-
-#### **Container Won't Start**
-```bash
-# Check Docker daemon
-sudo systemctl status docker
-
-# Clean and rebuild
-docker-compose down
-docker system prune -f
-docker-compose up --build
-```
-
-#### **API Connection Issues**
-```bash
-# Check if ports are free
-sudo netstat -tulpn | grep :8000
-
-# View container logs
-docker-compose logs orchestrator
-```
-
-#### **Job Stuck in "Scheduled"**
-```bash
-# Check agent container logs
-docker-compose logs agent-builder
-
-# Verify API key is set
-docker-compose exec orchestrator env | grep GEMINI
-```
 
 ---
 
-## 🔮 Future Development
 
-### **Short-term Goals**
-- [ ] **Better Error Handling**: More informative error messages
-- [ ] **Job Templates**: Predefined task types
-- [ ] **Web UI**: Dashboard for job management
-- [ ] **Authentication**: API key protection
-- [ ] **Job Queuing**: Better resource management
-
-### **Long-term Vision**
-- [ ] **Multi-language Support**: JavaScript, Go, Rust execution
-- [ ] **Advanced AI Reasoning**: More sophisticated task analysis
-- [ ] **GUI Automation**: Full desktop automation capabilities
-- [ ] **Distributed Execution**: Run across multiple nodes
-- [ ] **Plugin System**: Extensible agent capabilities
 
 ---
 
-## 🤝 Contributing
 
-This is a research project focused on exploring AI-driven automation. We welcome contributions that help improve:
-
-- **Task Analysis**: Better AI prompt engineering
-- **Execution Nodes**: New types of task execution
-- **Error Handling**: More robust failure recovery
-- **Documentation**: Better guides and examples
-- **Testing**: More comprehensive test coverage
-
-### **Getting Started**
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Make your changes and add tests
-4. Commit with clear messages: `git commit -m "Add amazing feature"`
-5. Push and create a pull request
 
 ---
 
@@ -272,32 +256,5 @@ This is a research project focused on exploring AI-driven automation. We welcome
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
-
-## 🙏 Acknowledgments
-
-- **Google Gemini Team**: For providing the AI capabilities
-- **Docker Community**: For containerization technology
-- **FastAPI Team**: For the excellent web framework
-- **PocketFlow**: For the workflow orchestration framework
-
----
-
-## 📞 Support & Community
-
-- **GitHub Issues**: [Report bugs or request features](https://github.com/your-repo/issues)
-- **Discussions**: [Join the community](https://github.com/your-repo/discussions)
-- **Documentation**: [Comprehensive guides](https://docs.your-project.com)
-
----
-
-## ⭐ Star This Project
-
-If this project helps you explore AI automation or build interesting things, please give it a star! It motivates us to keep improving and adding new features.
-
----
-
-**Ready to experiment with AI-driven automation?** 🚀
-
-*Start exploring the future of intelligent task execution today.*
 
 
