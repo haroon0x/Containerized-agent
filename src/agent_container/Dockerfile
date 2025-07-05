@@ -17,12 +17,8 @@ RUN apk add --no-cache \
     openssl-dev \
     && rm -rf /var/cache/apk/*
 
-# Clone noVNC
-RUN git clone https://github.com/novnc/noVNC.git /opt/noVNC \
-    && git clone https://github.com/novnc/websockify /opt/noVNC/utils/websockify
-
 # Install uv globally
-RUN pip3 install --no-cache-dir uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Set uv environment variables for optimal performance
 ENV UV_COMPILE_BYTECODE=1 \
@@ -45,6 +41,10 @@ COPY src/ /home/agentuser/workspace/src/
 # Install dependencies and project using uv
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --no-dev
+
+# Install noVNC after Python environment is ready
+RUN git clone https://github.com/novnc/noVNC.git /opt/noVNC \
+    && git clone https://github.com/novnc/websockify /opt/noVNC/utils/websockify
 
 COPY src/agent_container/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
