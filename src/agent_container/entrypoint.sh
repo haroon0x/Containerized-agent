@@ -10,8 +10,8 @@ echo "Starting agent for job $JOB_ID with prompt: $JOB_PROMPT"
 mkdir -p /workspace/output
 chown -R agentuser:agentuser /workspace/output 2>/dev/null || true
 
-# Run the agent runner using the installed package script
+# Run the agent runner directly using Python
 cd /home/agentuser/workspace
-agent-runner
+python3 -m src.agent_container.agent_runner
 
 echo "Agent completed for job $JOB_ID"
