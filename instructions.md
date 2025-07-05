@@ -29,3 +29,4 @@
 - Edit code in `src/`
 - Alpine Linux base for speed
 
+also you have to understand the ppyprojec.toml in this codebase is for developing this whole project and not specifically for the agent contianer we might need to make one seperate for the agent in the agent container. 

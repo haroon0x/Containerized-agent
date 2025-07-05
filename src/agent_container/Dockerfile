@@ -39,12 +39,12 @@ RUN mkdir -p /home/agentuser/workspace/output && chown -R agentuser:agentuser /h
 RUN ln -s /home/agentuser/workspace /workspace
 
 # Copy project files
-COPY pyproject.toml uv.lock /home/agentuser/workspace/
+COPY pyproject.toml /home/agentuser/workspace/
 COPY src/ /home/agentuser/workspace/src/
 
 # Install dependencies and project using uv
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev
+    uv sync --no-dev
 
 COPY src/agent_container/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
