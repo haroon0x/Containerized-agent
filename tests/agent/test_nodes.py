@@ -1,4 +1,4 @@
-from agent.nodes import GetQuestionNode, AnswerNode
+from src.agent.nodes import GetQuestionNode, AnswerNode
 from unittest.mock import patch
 
 def test_get_question_node_exec():

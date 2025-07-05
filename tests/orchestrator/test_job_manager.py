@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from orchestrator.api.job_manager import JobManager
+from src.orchestrator.api.job_manager import JobManager
 
 @patch('orchestrator.api.job_manager.docker')
 def test_launch_job_success(mock_docker):

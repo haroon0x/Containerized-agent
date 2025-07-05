@@ -5,7 +5,7 @@ from typing import Any, Dict
 from fastapi import FastAPI, BackgroundTasks, Request, Query
 from fastapi.responses import JSONResponse, FileResponse
 from pydantic import BaseModel
-from orchestrator.api.job_manager import job_manager
+from src.orchestrator.api.job_manager import job_manager
 
 logging.basicConfig(level=logging.INFO)
 
@@ -78,7 +78,7 @@ async def list_jobs() -> Dict[str, Any]:
 @app.get("/")
 async def root() -> JSONResponse:
     """Health check endpoint."""
-    return JSONResponse(content={"message": "orchestraion server is running."})
+    return JSONResponse(content={"message": "orchestration server is running."})
 
 @app.get("/job/{job_id}")
 async def get_job_details(job_id: str) -> Any:

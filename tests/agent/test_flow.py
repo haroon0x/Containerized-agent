@@ -1,4 +1,4 @@
-from agent.flow import create_qa_flow
+from src.agent.flow import create_qa_flow
 from pocketflow import Flow
 
 def test_create_qa_flow():
