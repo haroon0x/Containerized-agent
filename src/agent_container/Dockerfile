@@ -21,9 +21,13 @@ RUN apk add --no-cache \
 RUN git clone https://github.com/novnc/noVNC.git /opt/noVNC \
     && git clone https://github.com/novnc/websockify /opt/noVNC/utils/websockify
 
-# Install Python packages
-RUN pip3 install --no-cache-dir jupyterlab notebook \
-    && npm install -g typescript
+# Install uv globally
+RUN pip3 install --no-cache-dir uv
+
+# Set uv environment variables for optimal performance
+ENV UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    UV_PYTHON_DOWNLOADS=never
 
 # Create a non-root user
 RUN adduser -D -s /bin/bash agentuser \
@@ -34,19 +38,17 @@ RUN chown -R agentuser:agentuser /home/agentuser
 RUN mkdir -p /home/agentuser/workspace/output && chown -R agentuser:agentuser /home/agentuser/workspace/output
 RUN ln -s /home/agentuser/workspace /workspace
 
-# Copy the entire src directory to maintain the correct structure
+# Copy project files
+COPY pyproject.toml uv.lock /home/agentuser/workspace/
 COPY src/ /home/agentuser/workspace/src/
-COPY pyproject.toml /home/agentuser/workspace/
-COPY requirements.txt /home/agentuser/workspace/
 
-# Install Python dependencies from requirements.txt
-RUN pip3 install --no-cache-dir -r /home/agentuser/workspace/requirements.txt
+# Install dependencies and project using uv
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev
 
-# Copy entrypoint script
 COPY src/agent_container/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Copy supervisor configuration
 COPY src/agent_container/supervisord.conf /etc/supervisord.conf
 
 USER agentuser

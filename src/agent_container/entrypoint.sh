@@ -10,11 +10,8 @@ echo "Starting agent for job $JOB_ID with prompt: $JOB_PROMPT"
 mkdir -p /workspace/output
 chown -R agentuser:agentuser /workspace/output 2>/dev/null || true
 
-# Set up Python path to include src directory
-export PYTHONPATH="/home/agentuser/workspace/src:$PYTHONPATH"
-
-# Run the agent runner with the job prompt
+# Run the agent runner using the installed package script
 cd /home/agentuser/workspace
-python3 src/agent_container/agent_runner.py
+agent-runner
 
 echo "Agent completed for job $JOB_ID"
