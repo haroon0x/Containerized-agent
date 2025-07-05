@@ -33,21 +33,13 @@ RUN useradd -ms /bin/bash agentuser \
 WORKDIR /home/agentuser/workspace
 RUN chown -R agentuser:agentuser /home/agentuser
 
-# Copy the agent source code
-COPY src/agent/ /home/agentuser/workspace/agent/
-COPY src/agent_container/agent_runner.py /home/agentuser/workspace/src/agent_container/
+# Copy the entire src directory to maintain the correct structure
+COPY src/ /home/agentuser/workspace/src/
 COPY pyproject.toml /home/agentuser/workspace/
+COPY requirements.txt /home/agentuser/workspace/
 
-# Install Python dependencies directly
-RUN pip3 install --no-cache-dir \
-    fastapi>=0.115.14 \
-    uvicorn>=0.35.0 \
-    requests>=2.32.0 \
-    google-genai>=1.24.0 \
-    python-dotenv>=1.1.1 \
-    pocketflow>=0.0.2 \
-    pydantic>=2.0.0 \
-    typing-extensions>=4.0.0
+# Install Python dependencies from requirements.txt
+RUN pip3 install --no-cache-dir -r /home/agentuser/workspace/requirements.txt
 
 # Copy entrypoint script
 COPY src/agent_container/entrypoint.sh /entrypoint.sh

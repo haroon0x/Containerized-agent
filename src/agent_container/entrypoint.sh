@@ -9,8 +9,8 @@ echo "Starting agent for job $JOB_ID with prompt: $JOB_PROMPT"
 # Create output directory
 mkdir -p /workspace/output
 
-# Set up Python path
-export PYTHONPATH="/home/agentuser/workspace:$PYTHONPATH"
+# Set up Python path to include src directory
+export PYTHONPATH="/home/agentuser/workspace/src:$PYTHONPATH"
 
 # Run the agent runner with the job prompt
 cd /home/agentuser/workspace
