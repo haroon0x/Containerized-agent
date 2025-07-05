@@ -1,151 +1,303 @@
-# containerized-agent
+# 🚀 Containerized Agent System
 
-containerized-agent is a backend system that spins up isolated agent environments inside containers to execute shell commands, run code (Python, TypeScript, etc.), manage files, and control a GUI via xdot. It includes a REST API to schedule tasks, monitor their status, and return results. Designed with sandboxing, scalability, and context management in mind, it’s ideal for building secure coding agents, automation systems, or workflow runners.
+> **AI-Powered Task Execution in Isolated Environments**
 
-
----
-
-## ✨ Features
-
-- Run shell and code execution (Python, TypeScript, etc.)
-- GUI automation via `xdot` inside a container
-- View container in real-time via noVNC
-- REST API to schedule tasks and check status
-- Context management (beyond token limits)
-- Easily extensible, horizontally scalable
-- Built with Docker; Firecracker and k8s ready
+A practical system for running AI agents in Docker containers that can execute shell commands and Python code based on natural language prompts. Built for developers who want to automate repetitive tasks, prototype ideas quickly, or experiment with AI-driven automation.
 
 ---
 
-## 📦 API Endpoints
+## 🎯 What This Actually Does
 
-### Core API (Minimal Orchestration)
+This system takes your natural language request (like "Create a Python script that calculates fibonacci numbers") and:
 
-- `POST /schedule`  
-  Accepts a task prompt (e.g., "Build a React app") and spawns an agent container/VM. Returns a job ID.
-  
-  **Example:**
-  ```http
-  POST /schedule
-  Content-Type: application/json
-  {
-    "prompt": "Build me a todo app in React"
-  }
-  => { "job_id": "abc123", "status": "scheduled" }
-  ```
+1. **Analyzes** your request using AI to break it down into executable steps
+2. **Executes** shell commands and Python code in an isolated container
+3. **Compiles** the results and packages everything for download
+4. **Provides** real-time monitoring through logs and GUI access
 
-- `GET /status/:id`  
-  Returns the job status and a link to download the final output when ready.
-  
-  **Example:**
-  ```http
-  GET /status/abc123
-  => {
-    "job_id": "abc123",
-    "status": "complete",
-    "output": "/tmp/agent_jobs/abc123/output.zip",
-    "download_link": "http://localhost:8000/download/abc123",
-    "logs_link": "http://localhost:8000/logs/abc123"
-  }
-  ```
+### Current Capabilities
+- ✅ **Shell Command Execution**: Run any shell command in isolated containers
+- ✅ **Python Code Execution**: Execute Python scripts with full environment
+- ✅ **Task Analysis**: AI breaks down complex requests into executable steps
+- ✅ **Real-time Monitoring**: Watch execution through logs and VNC
+- ✅ **Result Packaging**: Download completed work as ZIP files
+- ✅ **Job Management**: Schedule, monitor, and cancel tasks via REST API
 
-### Advanced & Debugging Endpoints
-
-These endpoints are not required for minimal orchestration, but are highly recommended for debugging, monitoring, and extensibility:
-
-- `POST /cancel/{job_id}`  
-  Cancel a running job. Returns success/failure and updated status.
-  
-  **Example:**
-  ```http
-  POST /cancel/abc123
-  => { "job_id": "abc123", "cancelled": true, "status": "cancelled" }
-  ```
-
-- `GET /jobs`  
-  List all jobs and their statuses.
-  
-  **Example:**
-  ```http
-  GET /jobs
-  => { "jobs": [
-    { "job_id": "abc123", "status": "complete", "created": ..., "started": ..., "completed": ..., "error": null },
-    ...
-  ]}
-  ```
-
-- `GET /job/{job_id}`  
-  Returns full job details and metadata (timestamps, error info, etc.).
-
-- `GET /logs/{job_id}`  
-  Returns the last 1000 lines and full log for a job (stdout or stderr).
-
-- `GET /logs/{job_id}/{log_type}`  
-  Download the full log file (stdout or stderr) for a job as plain text.
-
-- `GET /download/{job_id}`  
-  Download the zipped output file for a completed job.
-
-> Advanced endpoints are useful for troubleshooting failed jobs, monitoring job progress, and integrating with UIs or admin tools. They are optional for a minimal system, but strongly recommended for real-world use.
+### What It's Not (Yet)
+- ❌ **Full GUI Automation**: While VNC is available, complex GUI automation is limited
+- ❌ **Multi-language Support**: Currently focused on Python and shell commands
+- ❌ **Production Deployment**: This is a research/development tool, not production-ready
+- ❌ **Advanced AI Reasoning**: Uses basic task analysis, not complex reasoning
 
 ---
 
-## 🛠️ Error Handling & Job Lifecycle
-- All endpoints return clear error messages and status codes for missing jobs, failed jobs, or invalid requests.
-- Jobs can be scheduled, monitored, cancelled, and their outputs/logs retrieved at any time.
-- Completed jobs' outputs are available as zipped downloads; logs are available for debugging.
+## 🏗️ How It Works
+
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   Your Request  │    │   Orchestrator   │    │  Agent Container │
+│                 │    │   (FastAPI)      │    │                 │
+│ "Build a React  │◄──►│ • Job Management │◄──►│ • Task Analysis │
+│  app"           │    │ • Container Mgmt │    │ • Shell Commands│
+│                 │    │ • API Gateway    │    │ • Python Code   │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+                              │
+                              ▼
+                       ┌──────────────────┐
+                       │   noVNC Server   │
+                       │ • Real-time GUI  │
+                       │ • Live Monitoring│
+                       └──────────────────┘
+```
+
+### The Flow
+1. **Task Analysis**: AI analyzes your prompt and creates a list of actions
+2. **Shell Execution**: Runs shell commands (npm install, git clone, etc.)
+3. **Python Execution**: Executes Python code for data processing or scripting
+4. **Result Compilation**: Packages everything into a downloadable ZIP
 
 ---
 
 ## 🚀 Quick Start
 
-1. **Clone the repo**
-   ```bash
-   git clone <your-repo-url>
-   cd containerized-agent
-   ```
+### 1. **Clone & Setup**
+```bash
+git clone <your-repo-url>
+cd containerized-agent
 
-2. **Start the system**
-   ```bash
-   docker-compose up --build
-   ```
+# Create environment file
+cat > .env << EOF
+GEMINI_API_KEY=your_gemini_api_key_here
+AGENT_IMAGE=containerized-agent:latest
+AGENT_OUTPUT_DIR=/tmp/agent_jobs
+RETENTION_DAYS=1
+EOF
+```
 
-3. **Test the system**
-   ```bash
-   python test_system.py
-   ```
+### 2. **Launch the System**
+```bash
+docker-compose up --build -d
+```
 
-4. **Access services**
-   - **Orchestrator API**: http://localhost:8000
-   - **noVNC (GUI)**: http://localhost:6080
-   - **Jupyter Lab**: http://localhost:8888
+### 3. **Test with a Simple Task**
+```bash
+# Health check
+curl http://localhost:8000/
 
-5. **API Examples**
-   ```bash
-   # Schedule a job
-   curl -X POST http://localhost:8000/schedule \
-     -H "Content-Type: application/json" \
-     -d '{"prompt": "Build me a simple React app"}'
-   
-   # Check job status
-   curl http://localhost:8000/status/{job_id}
-   
-   # List all jobs
-   curl http://localhost:8000/jobs
-   ```
+# Try a simple task
+curl -X POST http://localhost:8000/schedule \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "Create a Python script that prints hello world"}'
 
-> **Note**: Ensure Docker is installed and supports GUI containers (X11/VNC).
+# Get your job ID and check status
+curl http://localhost:8000/status/{job_id}
+```
+
+### 4. **Access the Interfaces**
+- **API Docs**: http://localhost:8000/docs
+- **Live GUI**: http://localhost:6080 (watch your agent work!)
+- **Jupyter Lab**: http://localhost:8888
+
+---
+
+## 📡 API Reference
+
+### Core Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `POST /schedule` | Schedule a new task | `{"prompt": "your task description"}` |
+| `GET /status/{id}` | Check job status | Returns status and download links |
+| `GET /jobs` | List all jobs | See all scheduled/completed tasks |
+| `POST /cancel/{id}` | Cancel running job | Stop a job in progress |
+
+### Example Usage
+```bash
+# Schedule a task
+curl -X POST http://localhost:8000/schedule \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "Create a simple web scraper in Python"}'
+
+# Check status
+curl http://localhost:8000/status/abc123
+
+# Download results (when complete)
+curl -O http://localhost:8000/download/abc123
+```
 
 ---
 
-## 🧱 Tech Stack
+## 🎯 Real Use Cases
 
-- Python (FastAPI or Flask) for orchestration
-- Shell subprocesses for command execution
-- Jupyter (optional) for code execution
-- xdot + Xvfb + noVNC for GUI
-- Docker (or Firecracker) for sandboxing
+### **Development & Prototyping**
+- **Quick Scripts**: "Create a Python script that processes CSV files"
+- **Data Analysis**: "Download stock data and create a simple chart"
+- **Web Scraping**: "Scrape a website and save the data to JSON"
+- **File Processing**: "Convert all images in a folder to thumbnails"
+
+### **Learning & Experimentation**
+- **Code Examples**: "Show me how to use pandas for data analysis"
+- **Algorithm Implementation**: "Implement quicksort in Python"
+- **API Testing**: "Create a script to test a REST API"
+
+### **Automation Tasks**
+- **File Organization**: "Sort files by type and create folders"
+- **Data Cleaning**: "Clean and validate a dataset"
+- **Report Generation**: "Generate a summary report from log files"
 
 ---
+
+## 🛠️ Technology Stack
+
+### **Core Components**
+- **FastAPI**: REST API for job management
+- **Docker**: Container isolation and execution
+- **Google Gemini**: AI for task analysis and execution
+- **PocketFlow**: Workflow orchestration framework
+
+### **Execution Environment**
+- **Python 3.11+**: Primary execution environment
+- **Shell Commands**: Full shell access in containers
+- **noVNC**: Real-time GUI monitoring
+- **Jupyter Lab**: Interactive development environment
+
+### **Infrastructure**
+- **Docker Compose**: Multi-service orchestration
+- **Volume Management**: Persistent job storage
+- **Logging**: Comprehensive execution tracking
+
+---
+
+## 🔧 Configuration
+
+### **Environment Variables**
+```bash
+# Required
+GEMINI_API_KEY=your_api_key_here
+
+# Optional (with defaults)
+AGENT_IMAGE=containerized-agent:latest
+AGENT_OUTPUT_DIR=/tmp/agent_jobs
+RETENTION_DAYS=1
+```
+
+### **Resource Limits**
+```yaml
+# In docker-compose.yml
+services:
+  orchestrator:
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+```
+
+---
+
+## 🚨 Troubleshooting
+
+### **Common Issues**
+
+#### **Container Won't Start**
+```bash
+# Check Docker daemon
+sudo systemctl status docker
+
+# Clean and rebuild
+docker-compose down
+docker system prune -f
+docker-compose up --build
+```
+
+#### **API Connection Issues**
+```bash
+# Check if ports are free
+sudo netstat -tulpn | grep :8000
+
+# View container logs
+docker-compose logs orchestrator
+```
+
+#### **Job Stuck in "Scheduled"**
+```bash
+# Check agent container logs
+docker-compose logs agent-builder
+
+# Verify API key is set
+docker-compose exec orchestrator env | grep GEMINI
+```
+
+---
+
+## 🔮 Future Development
+
+### **Short-term Goals**
+- [ ] **Better Error Handling**: More informative error messages
+- [ ] **Job Templates**: Predefined task types
+- [ ] **Web UI**: Dashboard for job management
+- [ ] **Authentication**: API key protection
+- [ ] **Job Queuing**: Better resource management
+
+### **Long-term Vision**
+- [ ] **Multi-language Support**: JavaScript, Go, Rust execution
+- [ ] **Advanced AI Reasoning**: More sophisticated task analysis
+- [ ] **GUI Automation**: Full desktop automation capabilities
+- [ ] **Distributed Execution**: Run across multiple nodes
+- [ ] **Plugin System**: Extensible agent capabilities
+
+---
+
+## 🤝 Contributing
+
+This is a research project focused on exploring AI-driven automation. We welcome contributions that help improve:
+
+- **Task Analysis**: Better AI prompt engineering
+- **Execution Nodes**: New types of task execution
+- **Error Handling**: More robust failure recovery
+- **Documentation**: Better guides and examples
+- **Testing**: More comprehensive test coverage
+
+### **Getting Started**
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes and add tests
+4. Commit with clear messages: `git commit -m "Add amazing feature"`
+5. Push and create a pull request
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- **Google Gemini Team**: For providing the AI capabilities
+- **Docker Community**: For containerization technology
+- **FastAPI Team**: For the excellent web framework
+- **PocketFlow**: For the workflow orchestration framework
+
+---
+
+## 📞 Support & Community
+
+- **GitHub Issues**: [Report bugs or request features](https://github.com/your-repo/issues)
+- **Discussions**: [Join the community](https://github.com/your-repo/discussions)
+- **Documentation**: [Comprehensive guides](https://docs.your-project.com)
+
+---
+
+## ⭐ Star This Project
+
+If this project helps you explore AI automation or build interesting things, please give it a star! It motivates us to keep improving and adding new features.
+
+---
+
+**Ready to experiment with AI-driven automation?** 🚀
+
+*Start exploring the future of intelligent task execution today.*
 
 
