@@ -1,34 +1,33 @@
 # --- Agent Container Dockerfile ---
-FROM ubuntu:22.04
+FROM alpine:3.19
 
-ENV DEBIAN_FRONTEND=noninteractive
-
-RUN apt-get update && apt-get install -y \
-    python3 python3-pip python3-venv \
+# Install system packages
+RUN apk add --no-cache \
+    python3 py3-pip \
     nodejs npm \
-    xvfb xdotool x11-utils \
+    xvfb xdotool xterm \
     supervisor \
     git curl wget \
     net-tools lsof \
     sudo \
-    tigervnc-standalone-server \
-    tigervnc-common \
-    xterm \
-    && rm -rf /var/lib/apt/lists/*
+    tigervnc \
+    bash \
+    gcc musl-dev python3-dev \
+    libffi-dev \
+    openssl-dev \
+    && rm -rf /var/cache/apk/*
 
-
+# Clone noVNC
 RUN git clone https://github.com/novnc/noVNC.git /opt/noVNC \
     && git clone https://github.com/novnc/websockify /opt/noVNC/utils/websockify
 
-
+# Install Python packages
 RUN pip3 install --no-cache-dir jupyterlab notebook \
     && npm install -g typescript
 
 # Create a non-root user
-RUN useradd -ms /bin/bash agentuser \
-    && usermod -aG sudo agentuser \
+RUN adduser -D -s /bin/bash agentuser \
     && echo 'agentuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
-
 
 WORKDIR /home/agentuser/workspace
 RUN chown -R agentuser:agentuser /home/agentuser

@@ -22,46 +22,101 @@ class AgentRunner:
         self.output_dir = "/workspace/output"
 
     def analyze_task(self, task: str) -> Dict[str, Any]:
-        """Analyze the task and determine required actions."""
-        try:
-            analysis_prompt = f"""
-            Analyze this task and determine what actions are needed:
-            Task: {task}
+        max_attempts = 3
+        attempt = 0
+        last_error = None
+        analysis = None
+        while attempt < max_attempts:
+            try:
+                analysis_prompt = f"""
+                Analyze this task and determine what actions are needed:
+                Task: {task}
 
-            You are in a Linux container with these capabilities:
-            - Shell commands (bash, git, curl, wget, etc.)
-            - Python 3.11 with many packages
-            - Node.js and npm
-            - File operations in /workspace directory
-            - GUI automation tools (xdotool)
-            - Web scraping capabilities
+                You are in a Linux container with these capabilities:
+                - Shell commands (bash, git, curl, wget, etc.)
+                - Python 3.11 with many packages
+                - Node.js and npm
+                - File operations in /workspace directory
+                - GUI automation tools (xdotool)
+                - Web scraping capabilities
 
-            Return a JSON with the following structure:
-            {{
-                "actions": [
-                    {{
-                        "type": "shell_command",
-                        "description": "what this command does",
-                        "command": "the actual shell command to execute",
-                        "working_dir": "/workspace"
-                    }},
-                    {{
-                        "type": "python_code",
-                        "description": "what this code does", 
-                        "code": "the Python code to execute",
-                        "output_file": "optional output file path"
-                    }}
-                ],
-                "estimated_time": "time estimate",
-                "requirements": ["list", "of", "requirements"]
-            }}
-            """
+                Return a JSON with the following structure:
+                {{
+                    "actions": [
+                        {{
+                            "type": "shell_command",
+                            "description": "what this command does",
+                            "command": "the actual shell command to execute",
+                            "working_dir": "/workspace"
+                        }},
+                        {{
+                            "type": "python_code",
+                            "description": "what this code does", 
+                            "code": "the Python code to execute",
+                            "output_file": "optional output file path"
+                        }}
+                    ],
+                    "estimated_time": "time estimate",
+                    "requirements": ["list", "of", "requirements"]
+                }}
+                Ensure all actions are clear, unambiguous, and executable. If any step is ambiguous or missing, clarify or fill in the details.
+                """
+                analysis_raw = call_llm(analysis_prompt)
+                try:
+                    analysis = json.loads(analysis_raw)
+                except Exception as e:
+                    logger.warning(f"Attempt {attempt+1}: Invalid JSON from LLM: {e}\nRaw output: {analysis_raw}")
+                    last_error = f"Invalid JSON: {e}"
+                    attempt += 1
+                    continue
 
-            analysis = call_llm(analysis_prompt)
-            return json.loads(analysis)
-        except Exception as e:
-            logger.error(f"Error analyzing task: {e}")
-            return {"actions": [], "estimated_time": "unknown", "requirements": []}
+                # Validate required fields
+                if not isinstance(analysis, dict):
+                    logger.warning(f"Attempt {attempt+1}: LLM output is not a dict: {analysis}")
+                    last_error = "Output not a dict"
+                    attempt += 1
+                    continue
+                if "actions" not in analysis or not isinstance(analysis["actions"], list):
+                    logger.warning(f"Attempt {attempt+1}: Missing or invalid 'actions' field: {analysis}")
+                    last_error = "Missing or invalid 'actions'"
+                    attempt += 1
+                    continue
+                # Check for ambiguous or missing steps
+                ambiguous = False
+                for i, action in enumerate(analysis["actions"]):
+                    if not isinstance(action, dict):
+                        ambiguous = True
+                        logger.warning(f"Attempt {attempt+1}: Action {i} is not a dict: {action}")
+                        break
+                    if "type" not in action or action["type"] not in ("shell_command", "python_code"):
+                        ambiguous = True
+                        logger.warning(f"Attempt {attempt+1}: Action {i} has invalid or missing 'type': {action}")
+                        break
+                    if "description" not in action or not action["description"]:
+                        ambiguous = True
+                        logger.warning(f"Attempt {attempt+1}: Action {i} missing 'description': {action}")
+                        break
+                    if action["type"] == "shell_command" and ("command" not in action or not action["command"]):
+                        ambiguous = True
+                        logger.warning(f"Attempt {attempt+1}: Action {i} missing 'command': {action}")
+                        break
+                    if action["type"] == "python_code" and ("code" not in action or not action["code"]):
+                        ambiguous = True
+                        logger.warning(f"Attempt {attempt+1}: Action {i} missing 'code': {action}")
+                        break
+                if ambiguous:
+                    last_error = "Ambiguous or incomplete action(s)"
+                    attempt += 1
+                    continue
+                # If all checks pass, return the analysis
+                logger.info(f"Task analysis successful on attempt {attempt+1}")
+                return analysis
+            except Exception as e:
+                logger.error(f"Error analyzing task (attempt {attempt+1}): {e}")
+                last_error = str(e)
+                attempt += 1
+        logger.error(f"Failed to analyze task after {max_attempts} attempts: {last_error}")
+        return {"actions": [], "estimated_time": "unknown", "requirements": [], "error": last_error}
 
     def execute_shell_command(self, command: str, working_dir: str = "/workspace") -> Dict[str, Any]:
         """Execute a shell command in the container."""
