@@ -35,7 +35,10 @@ RUN chown -R agentuser:agentuser /home/agentuser
 
 # Copy the agent source code
 COPY src/agent/ /home/agentuser/workspace/agent/
-COPY requirements.txt /home/agentuser/workspace/
+COPY pyproject.toml /home/agentuser/workspace/
+
+# Install Python dependencies
+RUN pip3 install --no-cache-dir -e /home/agentuser/workspace/
 
 # Copy entrypoint script
 COPY src/agent_container/entrypoint.sh /entrypoint.sh
