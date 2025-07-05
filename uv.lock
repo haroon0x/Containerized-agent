@@ -115,12 +115,13 @@ wheels = [
 [[package]]
 name = "containerized-agent"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "docker" },
     { name = "fastapi" },
     { name = "google-genai" },
     { name = "pocketflow" },
+    { name = "pydantic" },
     { name = "pytest" },
     { name = "python-dotenv" },
     { name = "requests" },
@@ -133,6 +134,7 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.115.14" },
     { name = "google-genai", specifier = ">=1.24.0" },
     { name = "pocketflow", specifier = ">=0.0.2" },
+    { name = "pydantic", specifier = ">=2.0.0" },
     { name = "pytest", specifier = ">=8.4.1" },
     { name = "python-dotenv", specifier = ">=1.1.1" },
     { name = "requests", specifier = ">=2.32.0" },

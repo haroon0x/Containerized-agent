@@ -2,12 +2,13 @@ import logging
 import docker
 import uuid
 import os
-from threading import Lock
-from typing import Any, Dict, Optional
-from agent.utils.utils import save_json, load_json
+import json
 import shutil
 import time
 import tempfile
+from threading import Lock
+from typing import Any, Dict, Optional
+from agent.utils import save_json, load_json
 
 logging.basicConfig(level=logging.INFO)
 
@@ -32,7 +33,6 @@ class JobManager:
             tmp_fd, tmp_path = tempfile.mkstemp(dir=os.path.dirname(JOBS_FILE), prefix="jobs_", suffix=".json")
             try:
                 with os.fdopen(tmp_fd, 'w', encoding='utf-8') as f:
-                    import json
                     json.dump(self.jobs, f, indent=2, ensure_ascii=False)
                 os.replace(tmp_path, JOBS_FILE)
             except Exception as e:
@@ -160,6 +160,10 @@ class JobManager:
             if os.path.exists(zip_path):
                 return zip_path
         return None
+
+    def get_logs(self, job_id: str) -> Optional[str]:
+        """Get the last 1000 lines of stdout logs for a job."""
+        return self.get_full_log(job_id, "stdout")
 
     def get_log_file(self, job_id: str, log_type: str = "stdout") -> Optional[str]:
         """Return the path to the log file (stdout or stderr) for the job, if available."""
