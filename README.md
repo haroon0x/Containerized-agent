@@ -97,14 +97,44 @@ These endpoints are not required for minimal orchestration, but are highly recom
 
 ---
 
-## 🚀 Quick Start (WIP)
+## 🚀 Quick Start
 
-1. Clone the repo  
-2. Run `docker-compose up --build`  
-3. Access the noVNC session at [localhost:6080](http://localhost:6080)  
-4. Use the API to schedule jobs and monitor them  
+1. **Clone the repo**
+   ```bash
+   git clone <your-repo-url>
+   cd containerized-agent
+   ```
 
-> Note: Ensure Docker is installed and supports GUI containers (X11/VNC).
+2. **Start the system**
+   ```bash
+   docker-compose up --build
+   ```
+
+3. **Test the system**
+   ```bash
+   python test_system.py
+   ```
+
+4. **Access services**
+   - **Orchestrator API**: http://localhost:8000
+   - **noVNC (GUI)**: http://localhost:6080
+   - **Jupyter Lab**: http://localhost:8888
+
+5. **API Examples**
+   ```bash
+   # Schedule a job
+   curl -X POST http://localhost:8000/schedule \
+     -H "Content-Type: application/json" \
+     -d '{"prompt": "Build me a simple React app"}'
+   
+   # Check job status
+   curl http://localhost:8000/status/{job_id}
+   
+   # List all jobs
+   curl http://localhost:8000/jobs
+   ```
+
+> **Note**: Ensure Docker is installed and supports GUI containers (X11/VNC).
 
 ---
 

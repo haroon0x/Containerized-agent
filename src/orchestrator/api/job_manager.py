@@ -1,30 +1,34 @@
+import logging
 import docker
 import uuid
 import os
 from threading import Lock
-from utils.utils import save_json, load_json
+from typing import Any, Dict, Optional
+from agent.utils.utils import save_json, load_json
 import shutil
 import time
 import tempfile
 
-# Path where job outputs will be stored (should be a shared/mounted volume in real deployment)
-OUTPUT_DIR = "/tmp/agent_jobs"
-AGENT_IMAGE = "containerized-agent:latest"  # TODO: Set your built agent image name/tag
-RETENTION_DAYS = 1  # Set retention period to 7 days
+logging.basicConfig(level=logging.INFO)
+
+OUTPUT_DIR = os.getenv("AGENT_OUTPUT_DIR", "/tmp/agent_jobs")
+AGENT_IMAGE = os.getenv("AGENT_IMAGE", "containerized-agent:latest")
+RETENTION_DAYS = int(os.getenv("RETENTION_DAYS", "1"))
 JOBS_FILE = os.path.join(OUTPUT_DIR, "jobs.json")
 LOGS_SUBDIR = "logs"
 
 class JobManager:
-    def __init__(self):
+    def __init__(self) -> None:
+        """Initialize the JobManager with Docker client and job state."""
         self.docker_client = docker.from_env()
         self.lock = Lock()
         os.makedirs(OUTPUT_DIR, exist_ok=True)
-        self.jobs = self._load_jobs()
+        self.jobs: Dict[str, Any] = self._load_jobs()
         self.cleanup_jobs()
 
-    def _save_jobs(self):
+    def _save_jobs(self) -> None:
+        """Atomically save jobs to disk."""
         with self.lock:
-            # Atomic write: write to temp file, then move
             tmp_fd, tmp_path = tempfile.mkstemp(dir=os.path.dirname(JOBS_FILE), prefix="jobs_", suffix=".json")
             try:
                 with os.fdopen(tmp_fd, 'w', encoding='utf-8') as f:
@@ -34,13 +38,16 @@ class JobManager:
             except Exception as e:
                 if os.path.exists(tmp_path):
                     os.remove(tmp_path)
+                logging.error(f"Failed to save jobs: {e}")
                 raise e
 
-    def _load_jobs(self):
+    def _load_jobs(self) -> Dict[str, Any]:
+        """Load jobs from disk."""
         jobs = load_json(JOBS_FILE)
         return jobs if jobs is not None else {}
 
     def launch_job(self, prompt: str) -> str:
+        """Launch a new agent job as a Docker container."""
         job_id = str(uuid.uuid4())
         output_path = os.path.join(OUTPUT_DIR, job_id)
         os.makedirs(output_path, exist_ok=True)
@@ -75,6 +82,7 @@ class JobManager:
                     "exit_code": None,
                 }
                 self._save_jobs()
+            logging.info(f"Launched job {job_id} with container {container.id}")
         except Exception as e:
             with self.lock:
                 self.jobs[job_id] = {
@@ -90,9 +98,11 @@ class JobManager:
                     "exit_code": None,
                 }
                 self._save_jobs()
+            logging.error(f"Failed to launch job {job_id}: {e}")
         return job_id
 
     def get_status(self, job_id: str) -> str:
+        """Get the status of a job."""
         with self.lock:
             job = self.jobs.get(job_id)
         if not job:
@@ -125,34 +135,34 @@ class JobManager:
                 self.jobs[job_id]["status"] = "not_found"
                 self.jobs[job_id]["error"] = "Container not found."
                 self._save_jobs()
+            logging.warning(f"Container not found for job {job_id}")
             return "not_found"
         except Exception as e:
             with self.lock:
                 self.jobs[job_id]["status"] = "error"
                 self.jobs[job_id]["error"] = str(e)
                 self._save_jobs()
+            logging.error(f"Error getting status for job {job_id}: {e}")
             return "error"
 
-    def get_output(self, job_id: str):
+    def get_output(self, job_id: str) -> Optional[str]:
+        """Get the output zip file for a completed job."""
         with self.lock:
             job = self.jobs.get(job_id)
         if not job:
             return None
         output_dir = job["output_path"]
         zip_path = os.path.join(output_dir, "output.zip")
-        # Only allow download if job is complete
         if job.get("status") == "complete" and os.path.exists(output_dir):
             if not os.path.exists(zip_path):
-                base_name = os.path.splitext(zip_path)[0]  # Remove '.zip' extension
+                base_name = os.path.splitext(zip_path)[0]
                 shutil.make_archive(base_name, 'zip', output_dir)
             if os.path.exists(zip_path):
                 return zip_path
         return None
 
-    def get_log_file(self, job_id: str, log_type: str = "stdout"):
-        """
-        Return the path to the log file (stdout or stderr) for the job, if available.
-        """
+    def get_log_file(self, job_id: str, log_type: str = "stdout") -> Optional[str]:
+        """Return the path to the log file (stdout or stderr) for the job, if available."""
         with self.lock:
             job = self.jobs.get(job_id)
         if not job:
@@ -165,10 +175,8 @@ class JobManager:
         log_file = os.path.join(logs_dir, f"{log_type}.log")
         return log_file if os.path.exists(log_file) else None
 
-    def get_full_log(self, job_id: str, log_type: str = "stdout"):
-        """
-        Return the full contents of the log file (stdout or stderr) for the job, if available.
-        """
+    def get_full_log(self, job_id: str, log_type: str = "stdout") -> Optional[str]:
+        """Return the full contents of the log file (stdout or stderr) for the job, if available."""
         log_file = self.get_log_file(job_id, log_type)
         if not log_file:
             return None
@@ -176,9 +184,11 @@ class JobManager:
             with open(log_file, "r", encoding="utf-8", errors="replace") as f:
                 return f.read()
         except Exception as e:
+            logging.error(f"Error reading log file for job {job_id}: {e}")
             return f"Error reading log file: {e}"
 
     def cancel_job(self, job_id: str) -> bool:
+        """Cancel a running job by removing its container."""
         with self.lock:
             job = self.jobs.get(job_id)
         if not job or not job.get("container_id"):
@@ -190,11 +200,14 @@ class JobManager:
                 self.jobs[job_id]["status"] = "cancelled"
                 self.jobs[job_id]["cancelled"] = time.time()
                 self._save_jobs()
+            logging.info(f"Cancelled job {job_id}")
             return True
-        except Exception:
+        except Exception as e:
+            logging.error(f"Failed to cancel job {job_id}: {e}")
             return False
 
-    def cleanup_jobs(self):
+    def cleanup_jobs(self) -> None:
+        """Clean up old jobs and containers based on retention policy."""
         with self.lock:
             to_remove = []
             for job_id, job in self.jobs.items():
@@ -215,6 +228,5 @@ class JobManager:
             for job_id in to_remove:
                 self.jobs.pop(job_id, None)
             self._save_jobs()
-
 
 job_manager = JobManager() 

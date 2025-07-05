@@ -1,65 +1,71 @@
+import pytest
 import requests
 import time
 import uuid
 
 BASE_URL = "http://localhost:8000"
 
-# 1. Schedule a job
-print("Scheduling job...")
-resp = requests.post(f"{BASE_URL}/schedule", json={"prompt": "echo Hello World"})
-assert resp.status_code == 200, resp.text
-job_id = resp.json()["job_id"]
-print(f"Job scheduled: {job_id}")
+@pytest.fixture(scope="session")
+def scheduled_job():
+    resp = requests.post(f"{BASE_URL}/schedule", json={"prompt": "echo Hello World"})
+    assert resp.status_code == 200, resp.text
+    job_id = resp.json()["job_id"]
+    yield job_id
 
-# 2. Poll status until complete or timeout
-print("Polling status...")
-for _ in range(30):
-    status_resp = requests.get(f"{BASE_URL}/status/{job_id}")
-    assert status_resp.status_code == 200, status_resp.text
-    status = status_resp.json()["status"]
-    print(f"Status: {status}")
-    if status == "complete":
-        break
-    time.sleep(2)
-else:
-    print("Job did not complete in time.")
 
-# 3. Attempt to download output
-print("Attempting to download output...")
-download_resp = requests.get(f"{BASE_URL}/download/{job_id}")
-if download_resp.status_code == 200:
-    with open(f"output_{job_id}.zip", "wb") as f:
-        f.write(download_resp.content)
-    print(f"Downloaded output to output_{job_id}.zip")
-else:
-    print(f"Download failed: {download_resp.text}")
+def test_poll_status_until_complete(scheduled_job):
+    job_id = scheduled_job
+    for _ in range(30):
+        status_resp = requests.get(f"{BASE_URL}/status/{job_id}")
+        assert status_resp.status_code == 200, status_resp.text
+        status = status_resp.json()["status"]
+        if status == "complete":
+            break
+        time.sleep(2)
+    else:
+        pytest.fail("Job did not complete in time.")
 
-# 4. Attempt to fetch logs
-print("Fetching logs...")
-logs_resp = requests.get(f"{BASE_URL}/logs/{job_id}")
-if logs_resp.status_code == 200:
-    print("Logs:", logs_resp.json()["last_1000_lines"][:200], "...")
-else:
-    print(f"Logs fetch failed: {logs_resp.text}")
+def test_download_output(scheduled_job):
+    job_id = scheduled_job
+    # Wait for job to complete
+    for _ in range(30):
+        status = requests.get(f"{BASE_URL}/status/{job_id}").json()["status"]
+        if status == "complete":
+            break
+        time.sleep(2)
+    download_resp = requests.get(f"{BASE_URL}/download/{job_id}")
+    assert download_resp.status_code == 200, download_resp.text
+    assert download_resp.headers["content-type"] == "application/zip"
 
-# 5. Cancel a job (should be already complete, so expect no effect)
-print("Cancelling job...")
-cancel_resp = requests.post(f"{BASE_URL}/cancel/{job_id}")
-print(f"Cancel response: {cancel_resp.json()}")
+def test_fetch_logs(scheduled_job):
+    job_id = scheduled_job
+    logs_resp = requests.get(f"{BASE_URL}/logs/{job_id}")
+    assert logs_resp.status_code == 200, logs_resp.text
+    logs = logs_resp.json()["last_1000_lines"]
+    assert isinstance(logs, str)
+    assert "Hello" in logs or "hello" in logs.lower()
 
-# 6. Try error cases
-print("Testing error cases...")
-invalid_id = "not-a-uuid"
-err_resp = requests.get(f"{BASE_URL}/status/{invalid_id}")
-print(f"Invalid job_id status: {err_resp.status_code}, {err_resp.text}")
+def test_cancel_job(scheduled_job):
+    job_id = scheduled_job
+    cancel_resp = requests.post(f"{BASE_URL}/cancel/{job_id}")
+    assert cancel_resp.status_code == 200
+    data = cancel_resp.json()
+    assert data["job_id"] == job_id
+    assert "cancelled" in data
 
-random_uuid = str(uuid.uuid4())
-err_resp2 = requests.get(f"{BASE_URL}/status/{random_uuid}")
-print(f"Nonexistent job_id status: {err_resp2.status_code}, {err_resp2.text}")
+def test_error_cases():
+    invalid_id = "not-a-uuid"
+    err_resp = requests.get(f"{BASE_URL}/status/{invalid_id}")
+    assert err_resp.status_code == 400
+    random_uuid = str(uuid.uuid4())
+    err_resp2 = requests.get(f"{BASE_URL}/status/{random_uuid}")
+    assert err_resp2.status_code in (400, 404)
 
-# 7. Double cancel
-print("Double cancelling...")
-cancel_resp2 = requests.post(f"{BASE_URL}/cancel/{job_id}")
-print(f"Double cancel response: {cancel_resp2.json()}")
-
-print("Test script complete.") 
+def test_double_cancel(scheduled_job):
+    job_id = scheduled_job
+    cancel_resp1 = requests.post(f"{BASE_URL}/cancel/{job_id}")
+    cancel_resp2 = requests.post(f"{BASE_URL}/cancel/{job_id}")
+    assert cancel_resp2.status_code == 200
+    data = cancel_resp2.json()
+    assert data["job_id"] == job_id
+    assert "cancelled" in data 

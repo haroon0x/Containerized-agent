@@ -1,12 +1,10 @@
 from pocketflow import Flow
-from nodes import GetQuestionNode, AnswerNode
+from agent.nodes import GetQuestionNode, AnswerNode
 
-def create_qa_flow():
+def create_qa_flow() -> Flow:
     """Create and return a question-answering flow."""
-   
     get_question_node = GetQuestionNode()
     answer_node = AnswerNode()
-
     get_question_node >> answer_node
     return Flow(start=get_question_node)
 

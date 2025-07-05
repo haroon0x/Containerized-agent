@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  orchestrator:
+    build:
+      context: .
+      dockerfile: src/orchestrator/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - AGENT_IMAGE=containerized-agent:latest
+      - AGENT_OUTPUT_DIR=/tmp/agent_jobs
+      - RETENTION_DAYS=1
+    volumes:
+      - agent_outputs:/tmp/agent_jobs
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - agent-builder
+
+  agent-builder:
+    build:
+      context: .
+      dockerfile: src/agent_container/Dockerfile
+    image: containerized-agent:latest
+    ports:
+      - "6080:6080"
+      - "8888:8888"
+    volumes:
+      - agent_outputs:/workspace/output
+    environment:
+      - DISPLAY=:1
+
+volumes:
+  agent_outputs: 

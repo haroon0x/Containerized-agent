@@ -8,6 +8,9 @@ dependencies = [
     "docker>=7.1.0",
     "fastapi>=0.115.14",
     "google-genai>=1.24.0",
-    "pocketflow>=0.0.2",
+    "pytest>=8.4.1",
     "python-dotenv>=1.1.1",
+    "uvicorn>=0.35.0",
+    "requests>=2.32.0",
+    "pocketflow>=0.0.2"
 ]
