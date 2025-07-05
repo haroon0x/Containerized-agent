@@ -20,6 +20,9 @@ RUN apk add --no-cache \
 # Install uv globally
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
+# Add uv to PATH
+ENV PATH="/root/.cargo/bin:$PATH"
+
 # Set uv environment variables for optimal performance
 ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
