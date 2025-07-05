@@ -5,7 +5,7 @@ __pycache__/
 
 # C extensions
 *.so
-
+.uv.lock
 # Distribution / packaging
 .Python
 build/
@@ -272,3 +272,4 @@ coverage/
 
 # Optional REPL history
 .node_repl_history 
+.pytest_cache

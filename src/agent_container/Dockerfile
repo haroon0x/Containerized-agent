@@ -32,6 +32,7 @@ RUN useradd -ms /bin/bash agentuser \
 
 WORKDIR /home/agentuser/workspace
 RUN chown -R agentuser:agentuser /home/agentuser
+RUN mkdir -p /home/agentuser/workspace/output && chown -R agentuser:agentuser /home/agentuser/workspace/output
 
 # Copy the entire src directory to maintain the correct structure
 COPY src/ /home/agentuser/workspace/src/
