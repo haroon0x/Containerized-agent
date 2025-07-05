@@ -25,10 +25,13 @@ services:
     ports:
       - "6080:6080"
       - "8888:8888"
-    volumes:
-      - agent_outputs:/workspace/output
     environment:
       - DISPLAY=:1
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    # Uncomment and set the following if you want to mount output to the host
+    # volumes:
+    #   - ./output:/workspace/output
+    # Make sure to run: sudo chown -R 1000:1000 ./output on your host if you mount
 
 volumes:
   agent_outputs: 
