@@ -41,6 +41,7 @@ COPY src/ /home/agentuser/workspace/src/
 # Install dependencies and project using uv
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --no-dev
+RUN uv pip list
 
 # Install noVNC after Python environment is ready
 RUN git clone https://github.com/novnc/noVNC.git /opt/noVNC \
