@@ -218,6 +218,55 @@ free -h
 
 ---
 
+## 🐚 Accessing and Debugging the Agent Container
+
+### 1. Open a Shell in the Running Container
+
+```bash
+docker ps # Find the container name (e.g., containerized-agent-agent-builder-1)
+docker exec -it containerized-agent-agent-builder-1 bash
+```
+
+### 2. Run Python, uv, or Inspect Files
+
+Once inside the container shell:
+
+```bash
+# List installed Python packages
+uv pip list
+
+# Run Python scripts
+python3
+
+# Inspect output files
+ls /workspace/output
+cat /workspace/output/result.json
+```
+
+### 3. Re-run or Debug Tasks Manually
+
+You can manually run scripts or commands as needed:
+
+```bash
+cd /home/agentuser/workspace
+python3 src/agent_container/agent_runner.py
+```
+
+### 4. Exit the Container Shell
+
+```bash
+exit
+```
+
+### 5. Stopping and Restarting the Container
+
+```bash
+docker-compose stop agent-builder
+docker-compose up agent-builder
+```
+
+---
+
 ## 📊 Monitoring and Debugging
 
 ### View Real-time Logs

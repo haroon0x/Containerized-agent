@@ -16,21 +16,20 @@ RUN apt-get update && apt-get install -y \
     fonts-liberation \
     && rm -rf /var/lib/apt/lists/*
 
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs
-
-RUN git clone https://github.com/novnc/noVNC.git /opt/noVNC \
-    && git clone https://github.com/novnc/websockify /opt/noVNC/utils/websockify
+#RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+#    && apt-get install -y nodejs
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 WORKDIR /home/agentuser/workspace
-
 RUN uv venv .venv
 ENV PATH="/home/agentuser/workspace/.venv/bin:$PATH"
 
 RUN uv pip install jupyterlab notebook
-RUN npm install -g typescript
+#RUN npm install -g typescript
+
+RUN git clone https://github.com/novnc/noVNC.git /opt/noVNC \
+    && git clone https://github.com/novnc/websockify /opt/noVNC/utils/websockify
 
 RUN useradd -ms /bin/bash agentuser \
     && usermod -aG sudo agentuser \

@@ -164,6 +164,7 @@ class PythonCodeNode(Node):
         shared["actions"] = [a for a in actions if a.get("type") != "python_code" or a != prep_res]
 
 class ResultCompilationNode(Node):
+
     """Compile all results into a final output."""
     
     def prep(self, shared: Dict[str, Any]) -> Dict[str, Any]:
@@ -200,3 +201,5 @@ class ResultCompilationNode(Node):
     def post(self, shared: Dict[str, Any], prep_res: Any, exec_res: Dict[str, Any]) -> None:
         """Store the final result."""
         shared["final_result"] = exec_res
+
+
