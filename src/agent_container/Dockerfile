@@ -24,14 +24,18 @@ RUN git clone https://github.com/novnc/noVNC.git /opt/noVNC \
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-RUN uv pip install jupyterlab notebook \
-    && npm install -g typescript
+WORKDIR /home/agentuser/workspace
+
+RUN uv venv .venv
+ENV PATH="/home/agentuser/workspace/.venv/bin:$PATH"
+
+RUN uv pip install jupyterlab notebook
+RUN npm install -g typescript
 
 RUN useradd -ms /bin/bash agentuser \
     && usermod -aG sudo agentuser \
     && echo 'agentuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
-WORKDIR /home/agentuser/workspace
 RUN chown -R agentuser:agentuser /home/agentuser
 RUN mkdir -p /home/agentuser/workspace/output && chown -R agentuser:agentuser /home/agentuser/workspace/output
 RUN ln -s /home/agentuser/workspace /workspace
@@ -41,6 +45,7 @@ COPY pyproject.toml /home/agentuser/workspace/
 COPY requirements.txt /home/agentuser/workspace/
 
 RUN uv sync
+RUN uv pip list
 
 COPY src/agent_container/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
