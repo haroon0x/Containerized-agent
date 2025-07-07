@@ -2,7 +2,7 @@
 
 > **AI-Powered Task Execution in Isolated Environments**
 
-A practical system for running AI agents in Docker containers that can execute shell commands and Python code based on natural language prompts. Built for developers who want to automate repetitive tasks, prototype ideas quickly, or experiment with AI-driven automation. It primarily uses [alchemystai](https://getalchemystai.com) for the agent andgemini as a fallback.
+A practical system for running AI agents in Docker containers that can execute shell commands and Python code based on natural language prompts. Built for developers who want to automate repetitive tasks, prototype ideas quickly, or experiment with AI-driven automation. It primarily uses [alchemystai](https://getalchemystai.com) for the agent and gemini as a fallback.
 
 ---
 
