@@ -2,7 +2,7 @@
 
 > **AI-Powered Task Execution in Isolated Environments**
 
-A practical system for running AI agents in Docker containers that can execute shell commands and Python code based on natural language prompts. Built for developers who want to automate repetitive tasks, prototype ideas quickly, or experiment with AI-driven automation.
+A practical system for running AI agents in Docker containers that can execute shell commands and Python code based on natural language prompts. Built for developers who want to automate repetitive tasks, prototype ideas quickly, or experiment with AI-driven automation. It primarily uses [alchemystai](https://getalchemystai.com) for the agent andgemini as a fallback.
 
 ---
 
@@ -161,18 +161,18 @@ This system takes your natural language request (like "Create a Python script th
 ## 🚀 Quick Start
 
 ### 1. **Clone & Setup**
-   ```bash
-   git clone <your-repo-url>
-   cd containerized-agent
+```bash
+git clone <your-repo-url>
+cd containerized-agent
 
 # Create environment file
 cat > .env << EOF
-GEMINI_API_KEY=your_gemini_api_key_here
+ALCHEMYST_API_KEY=your_alchemyst_api_key_here
 AGENT_IMAGE=containerized-agent:latest
 AGENT_OUTPUT_DIR=/tmp/agent_jobs
 RETENTION_DAYS=1
 EOF
-```
+
 
 ### 2. **Launch the System**
    ```bash
