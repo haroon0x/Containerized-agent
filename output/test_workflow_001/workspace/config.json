@@ -1,0 +1,7 @@
+{
+  "data_file": "sample_data.csv",
+  "report_file": "summary_report.txt",
+  "num_records": 100,
+  "min_value": 1,
+  "max_value": 1000
+}
