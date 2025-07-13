@@ -18,6 +18,7 @@ class TaskAnalysisNode(Node):
     def exec(self, task: str) -> Dict[str, Any]:
         try:
             analysis_prompt = f"""
+            Assume the environment is Ubuntu Linux. All shell commands should be written for bash on Ubuntu.
             Analyze the following task and return a JSON list of actions needed to accomplish it. 
             If the task involves writing, modifying, or executing code, always include a 'python_code' action with the code to be executed, and a 'file_operation' action if a file should be created or modified. 
             
@@ -103,6 +104,9 @@ class ShellCommandNode(Node):
                 created_files.add(p.name.lower())
                 created_files.add(p.as_posix().lower())
                 created_files_full.add(str(p.resolve().as_posix().lower()))
+        linux_only_cmds = {"ls", "ls -la", "pwd", "cat", "touch", "rm", "mv", "cp"}
+        import platform
+        is_windows = platform.system().lower() == "windows"
         for action in actions:
             command = action.get("command", "")
             description = action.get("description", "")
@@ -114,6 +118,14 @@ class ShellCommandNode(Node):
                     part_norm = part.replace('\\', '/').lower()
                     if part_norm in created_files or os.path.basename(part_norm) in created_files or part_norm in created_files_full:
                         referenced_files.add(part)
+                if is_windows and (parts[0] in linux_only_cmds or command in linux_only_cmds):
+                    results.append({
+                        "success": False,
+                        "output": "",
+                        "error": f"Command '{command}' is Linux-only and was skipped on Windows.",
+                        "command": command
+                    })
+                    continue
                 for fname in referenced_files:
                     file_path = Path(fname)
                     if not file_path.is_absolute():
