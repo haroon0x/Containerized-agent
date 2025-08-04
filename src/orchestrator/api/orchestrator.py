@@ -2,7 +2,7 @@ import logging
 import os
 import uuid
 from typing import Any, Dict
-from fastapi import FastAPI, BackgroundTasks, Request, Query
+from fastapi import FastAPI, BackgroundTasks, Request, Query, Depends, HTTPException, status
 from fastapi.responses import JSONResponse, FileResponse
 from pydantic import BaseModel
 from src.orchestrator.api.job_manager import job_manager
@@ -21,6 +21,18 @@ def is_valid_job_id(job_id: str) -> bool:
     except Exception:
         return False
 
+async def validate_job_id(job_id: str) -> str:
+    """
+    A FastAPI dependency that checks if a job_id is a valid UUID.
+    If not, it raises an HTTPException. Otherwise, it returns the job_id.
+    """
+    if not is_valid_job_id(job_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid job_id format (must be a UUID)",
+        )
+    return job_id
+
 @app.post("/schedule")
 async def schedule_job(req: ScheduleRequest, background_tasks: BackgroundTasks) -> Dict[str, Any]:
     """Launch a new job as a Docker container using JobManager."""
@@ -29,11 +41,8 @@ async def schedule_job(req: ScheduleRequest, background_tasks: BackgroundTasks) 
     return {"job_id": job_id, "status": "scheduled"}
 
 @app.get("/status/{job_id}")
-async def get_status(job_id: str, request: Request) -> Dict[str, Any]:
+async def get_status(request: Request, job_id: str = Depends(validate_job_id)) -> Dict[str, Any]:
     """Get the status and output path for a job. If complete, include download and logs links."""
-    if not is_valid_job_id(job_id):
-        logging.warning(f"Invalid job_id format: {job_id}")
-        return JSONResponse(status_code=400, content={"error": "Invalid job_id format (must be UUID)"})
     status = job_manager.get_status(job_id)
     output = job_manager.get_output(job_id) if status == "complete" else None
     base_url = str(request.base_url).rstrip("/")
@@ -49,11 +58,8 @@ async def get_status(job_id: str, request: Request) -> Dict[str, Any]:
     }
 
 @app.post("/cancel/{job_id}")
-async def cancel_job(job_id: str) -> Dict[str, Any]:
+async def cancel_job(job_id: str = Depends(validate_job_id)) -> Dict[str, Any]:
     """Cancel a running job. Returns success/failure and updated status."""
-    if not is_valid_job_id(job_id):
-        logging.warning(f"Invalid job_id format for cancel: {job_id}")
-        return JSONResponse(status_code=400, content={"error": "Invalid job_id format (must be UUID)"})
     success = job_manager.cancel_job(job_id)
     status = job_manager.get_status(job_id)
     logging.info(f"Cancelled job {job_id}: {success}")
@@ -81,11 +87,8 @@ async def root() -> JSONResponse:
     return JSONResponse(content={"message": "orchestration server is running."})
 
 @app.get("/job/{job_id}")
-async def get_job_details(job_id: str) -> Any:
+async def get_job_details(job_id: str = Depends(validate_job_id)) -> Any:
     """Get the full job state/details for a job."""
-    if not is_valid_job_id(job_id):
-        logging.warning(f"Invalid job_id format for details: {job_id}")
-        return JSONResponse(status_code=400, content={"error": "Invalid job_id format (must be UUID)"})
     job = job_manager.jobs.get(job_id)
     if not job:
         logging.warning(f"Job not found: {job_id}")
@@ -93,11 +96,8 @@ async def get_job_details(job_id: str) -> Any:
     return job
 
 @app.get("/logs/{job_id}")
-async def get_job_logs(job_id: str, log_type: str = Query("stdout", enum=["stdout", "stderr"])) -> Any:
+async def get_job_logs(job_id: str = Depends(validate_job_id), log_type: str = Query("stdout", enum=["stdout", "stderr"])) -> Any:
     """Get the last 1000 lines and full log for a job (stdout or stderr)."""
-    if not is_valid_job_id(job_id):
-        logging.warning(f"Invalid job_id format for logs: {job_id}")
-        return JSONResponse(status_code=400, content={"error": "Invalid job_id format (must be UUID)"})
     if log_type not in ("stdout", "stderr"):
         logging.warning(f"Invalid log_type: {log_type}")
         return JSONResponse(status_code=400, content={"error": "log_type must be 'stdout' or 'stderr'"})
@@ -109,11 +109,8 @@ async def get_job_logs(job_id: str, log_type: str = Query("stdout", enum=["stdou
     return {"job_id": job_id, "log_type": log_type, "last_1000_lines": logs, "full_log": full_log}
 
 @app.get("/logs/{job_id}/{log_type}")
-async def download_log_file(job_id: str, log_type: str) -> Any:
+async def download_log_file(log_type: str, job_id: str = Depends(validate_job_id)) -> Any:
     """Download the full log file (stdout or stderr) for a job as plain text."""
-    if not is_valid_job_id(job_id):
-        logging.warning(f"Invalid job_id format for log download: {job_id}")
-        return JSONResponse(status_code=400, content={"error": "Invalid job_id format (must be UUID)"})
     if log_type not in ("stdout", "stderr"):
         logging.warning(f"Invalid log_type for download: {log_type}")
         return JSONResponse(status_code=400, content={"error": "log_type must be 'stdout' or 'stderr'"})
@@ -124,11 +121,8 @@ async def download_log_file(job_id: str, log_type: str) -> Any:
     return FileResponse(log_file, filename=os.path.basename(log_file), media_type="text/plain")
 
 @app.get("/download/{job_id}")
-async def download_job_output(job_id: str) -> Any:
+async def download_job_output(job_id: str = Depends(validate_job_id)) -> Any:
     """Download the zipped output file for a completed job."""
-    if not is_valid_job_id(job_id):
-        logging.warning(f"Invalid job_id format for download: {job_id}")
-        return JSONResponse(status_code=400, content={"error": "Invalid job_id format (must be UUID)"})
     output = job_manager.get_output(job_id)
     if not output or not output.endswith(".zip") or not os.path.exists(output):
         logging.warning(f"Output zip not found for job {job_id}")
