@@ -19,6 +19,6 @@ echo "Starting Gemini agent..."
 
 gemini --prompt "$JOB_PROMPT" \
        --all-files \
-       --approval-mode=yolo \
+       --approval-mode=yolo
 
 echo "Agent completed for job $JOB_ID"

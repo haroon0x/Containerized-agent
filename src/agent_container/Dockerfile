@@ -19,6 +19,9 @@ RUN apt-get update && apt-get install -y \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs 
 
+# Install Jupyter Lab
+#RUN pip3 install jupyterlab
+
 RUN npm install -g @google/gemini-cli
 
 
