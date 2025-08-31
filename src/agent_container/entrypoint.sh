@@ -10,11 +10,12 @@ echo "Starting agent for job $JOB_ID with prompt: $JOB_PROMPT"
 mkdir -p /workspace/output
 chown -R agentuser:agentuser /workspace/output 2>/dev/null || true
 
-# Set up Python path to include src directory
-export PYTHONPATH="/home/agentuser/workspace/src:$PYTHONPATH"
+echo "Starting Gemini agent..." 
 
-# Run the agent runner with the job prompt
-cd /home/agentuser/workspace
-python3 src/agent_container/agent_runner.py
+
+gemini --prompt "$JOB_PROMPT" \
+       --all-files \
+       --approval-mode=yolo \
+       | tee /workspace/output/result.log
 
 echo "Agent completed for job $JOB_ID"
