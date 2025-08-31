@@ -17,13 +17,13 @@ RUN apt-get update && apt-get install -y \
     fonts-liberation \
     && rm -rf /var/lib/apt/lists/* \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs \
-    && npm install -g @google/gemini-cli
+    && apt-get install -y nodejs 
+
+RUN npm install -g @google/gemini-cli
 
 
 #COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-WORKDIR /home/agentuser/workspace
 
 #RUN npm install -g typescript
 
@@ -32,12 +32,13 @@ RUN git clone https://github.com/novnc/noVNC.git /opt/noVNC \
 
 RUN useradd -ms /bin/bash agentuser \
     && usermod -aG sudo agentuser \
-    && echo 'agentuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+    && echo 'agentuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers \
+    && chown -R agentuser:agentuser /home/agentuser \
+    && mkdir -p /home/agentuser/workspace/output \
+    && chown -R agentuser:agentuser /home/agentuser/workspace/output \
+    && ln -s /home/agentuser/workspace /workspace
 
-RUN chown -R agentuser:agentuser /home/agentuser
-RUN mkdir -p /home/agentuser/workspace/output && chown -R agentuser:agentuser /home/agentuser/workspace/output
-RUN ln -s /home/agentuser/workspace /workspace
-
+WORKDIR /home/agentuser/workspace
 
 COPY src/agent_container/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
