@@ -1,0 +1,30 @@
+#!/bin/bash
+unset SESSION_MANAGER
+unset DBUS_SESSION_BUS_ADDRESS
+
+export DISPLAY=${DISPLAY:-:1}
+
+# Load user X resources
+[ -r "$HOME/.Xresources" ] && xrdb "$HOME/.Xresources"
+
+# Background settings
+xsetroot -solid '#2e3440' 2>/dev/null || true
+vncconfig -iconic & disown
+
+# Wait until DISPLAY is ready
+i=0
+while ! xdpyinfo -display "$DISPLAY" >/dev/null 2>&1; do
+    sleep 1
+    i=$((i+1))
+    if [ $i -ge 15 ]; then
+        echo "❌ Display $DISPLAY not ready after 15 attempts"
+        exit 1
+    fi
+done
+
+# Start terminal and window manager
+xterm -geometry 80x24+10+10 -ls -title 'Agent Terminal' -e bash & disown
+twm & disown
+
+# Keep script alive
+wait
