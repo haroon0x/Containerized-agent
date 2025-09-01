@@ -143,4 +143,30 @@ Ensure your Gemini API key is correctly set in the environment variables or .env
 #### 5. Permission Issues with entrypoint.sh
 If you encounter permission issues with the entrypoint.sh file during the build process, ensure that the chmod command is executed before switching to the non-root user in the Dockerfile.
 
+#### 6. Gemini API Rate Limits
+If you encounter errors related to Gemini API rate limits (HTTP 429 Too Many Requests), try the following:
+
+```bash
+# Wait a few minutes before retrying
+# The free tier is limited to 2 requests per minute for gemini-2.5-pro
+
+# Consider using a different model with higher rate limits
+# Edit the entrypoint.sh file to change the model
+sed -i 's/gemini-2.5-pro/gemini-2.5-flash/g' src/agent_containers/webdev_agent/entrypoint.sh
+
+# Or upgrade your API key to a paid tier
+# Visit: https://ai.google.dev/pricing
+```
+
+#### 7. Output Files Not Being Generated
+If Gemini isn't generating output files in the expected location:
+
+```bash
+# Check the job-specific output directory
+ls -la ./output/[JOB_ID]/
+
+# The JOB_ID is printed in the container logs when the job starts
+# Each job gets its own directory under the output folder
+```
+
 ---
