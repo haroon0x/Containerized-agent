@@ -31,8 +31,8 @@ RUN mkdir -p ~/.vnc \
     && printf '#!/bin/bash\nexport DISPLAY=:1\nxterm -geometry 80x24+10+10 -ls -title "Agent Terminal" &\ntwm\n' > ~/.vnc/xstartup \
     && chmod +x ~/.vnc/xstartup
 
-RUN npm install -g @google/gemini-cli \
-    && git clone https://github.com/novnc/noVNC.git /opt/noVNC \
+RUN npm install -g @google/gemini-cli
+RUN git clone https://github.com/novnc/noVNC.git /opt/noVNC \
     && git clone https://github.com/novnc/websockify /opt/noVNC/utils/websockify
 
 RUN ln -s /home/agentuser/workspace /workspace
