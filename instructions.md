@@ -132,11 +132,12 @@ If you encounter port conflicts, you can modify the port mappings in the `docker
 # Example: Change host port from 6080 to 6081
 docker run -d \
   --name my-agent-job \
-  -p 6081:6080 \
-  -e "JOB_PROMPT=Your prompt" \
+  -p 6080:6080 \
+  -v "$(pwd)/output:/workspace" \
+  -e "JOB_PROMPT=Your agent task description here" \
   -e "VNC_PASSWORD=your-secure-password" \
   -e "GEMINI_API_KEY=your_gemini_api_key" \
-  webdev-agent:latest
+  webdev-agent
 ```
 
 #### 2. Permission Issues with Output Directory

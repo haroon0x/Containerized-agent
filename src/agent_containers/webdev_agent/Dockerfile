@@ -13,7 +13,8 @@ RUN apt-get update && apt-get install -y \
     sudo \
     tigervnc-standalone-server \
     tigervnc-common \
-    xterm 
+    xterm \
+    && pip3 install psutil 
 
 
 RUN npm install -g @google/gemini-cli
