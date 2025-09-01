@@ -140,4 +140,7 @@ docker-compose logs orchestrator
 #### 4. API Key Issues
 Ensure your Gemini API key is correctly set in the environment variables or .env file.
 
+#### 5. Permission Issues with entrypoint.sh
+If you encounter permission issues with the entrypoint.sh file during the build process, ensure that the chmod command is executed before switching to the non-root user in the Dockerfile.
+
 ---

@@ -32,17 +32,16 @@ RUN useradd -ms /bin/bash agentuser \
 
 RUN ln -s /home/agentuser/workspace /workspace
 
-USER agentuser
-WORKDIR /home/agentuser/workspace
-
-
 # Copy configs
 COPY src/agent_containers/webdev_agent/entrypoint.sh /entrypoint.sh
 COPY src/agent_containers/webdev_agent/supervisord.conf /etc/supervisord.conf
 RUN chmod +x /entrypoint.sh
 
+USER agentuser
+WORKDIR /home/agentuser/workspace
 
 
-    EXPOSE 6080 8888 8000   
+
+EXPOSE 6080 8888 8000   
 
 ENTRYPOINT ["/entrypoint.sh"]
