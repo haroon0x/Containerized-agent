@@ -10,16 +10,12 @@ RUN apt-get update && apt-get install -y \
     supervisor \
     tigervnc-standalone-server \
     tigervnc-common \
+    twm \
     xterm \
     netcat-openbsd \
     sudo \
-    xfce4-session \
-    xfce4-panel \
-    xfce4-terminal \
-    xfwm4 \
-    xfdesktop4 \
-    dbus-x11 \
     && rm -rf /var/lib/apt/lists/*
+
 
 RUN useradd -ms /bin/bash agentuser \
     && usermod -aG sudo agentuser \
@@ -34,19 +30,11 @@ RUN su - agentuser -c "mkdir -p /home/agentuser/.vnc" \
     && chown agentuser:agentuser /home/agentuser/.vnc/passwd
 
 
-USER agentuser
+RUN su - agentuser -c "printf '#!/bin/bash\nexport DISPLAY=:1\nxterm -geometry 80x24+10+10 -ls -title \"Agent Terminal\" &\ntwm\n' > /home/agentuser/.vnc/xstartup" \
+    && chmod +x /home/agentuser/.vnc/xstartup \
+    && chown agentuser:agentuser /home/agentuser/.vnc/xstartup
 
-RUN mkdir -p ~/.vnc && \
-    cat > ~/.vnc/xstartup <<'EOF'
-#!/bin/bash
-unset SESSION_MANAGER
-unset DBUS_SESSION_BUS_ADDRESS
-export XDG_SESSION_TYPE=x11
-export XDG_CURRENT_DESKTOP=XFCE
-export XDG_SESSION_DESKTOP=xfce
-dbus-launch --exit-with-session startxfce4 &
-EOF
-RUN chmod +x ~/.vnc/xstartup
+
 
 RUN npm install -g @google/gemini-cli
 
@@ -70,6 +58,7 @@ RUN chmod +x /usr/local/bin/vnc-healthcheck.sh
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
   CMD /usr/local/bin/vnc-healthcheck.sh
 
+USER agentuser
 WORKDIR /home/agentuser/workspace
 
 EXPOSE 6080 8888 8000

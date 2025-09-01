@@ -1,7 +1,6 @@
 #!/bin/bash
 set -e
 
-
 if [ -z "$JOB_PROMPT" ]; then
     echo "❌ Error: JOB_PROMPT is required. Pass it as an env var."
     exit 1
@@ -28,23 +27,18 @@ if [ ! -d "/home/agentuser/.vnc" ]; then
     mkdir -p /home/agentuser/.vnc
 fi
 
-# Create VNC password if it doesn't exist
 if [ ! -f "/home/agentuser/.vnc/passwd" ]; then
     echo "passw0rd" | vncpasswd -f > /home/agentuser/.vnc/passwd
     chmod 600 /home/agentuser/.vnc/passwd
     chown agentuser:agentuser /home/agentuser/.vnc/passwd
 fi
 
-# Create xstartup if it doesn't exist
 if [ ! -f "/home/agentuser/.vnc/xstartup" ]; then
     cat > /home/agentuser/.vnc/xstartup << 'EOF'
 #!/bin/bash
-unset SESSION_MANAGER
-unset DBUS_SESSION_BUS_ADDRESS
-export XDG_SESSION_TYPE=x11
-export XDG_CURRENT_DESKTOP=XFCE
-export XDG_SESSION_DESKTOP=xfce
-dbus-launch --exit-with-session startxfce4 &
+export DISPLAY=:1
+xterm -geometry 80x24+10+10 -ls -title 'Agent Terminal' &
+twm
 EOF
     chmod +x /home/agentuser/.vnc/xstartup
     chown agentuser:agentuser /home/agentuser/.vnc/xstartup
