@@ -24,12 +24,6 @@ RUN useradd -ms /bin/bash agentuser \
     && chown -R agentuser:agentuser /home/agentuser
 
 
-RUN su - agentuser -c "mkdir -p /home/agentuser/.vnc" \
-    && su - agentuser -c "echo 'passw0rd' | vncpasswd -f > /home/agentuser/.vnc/passwd" \
-    && chmod 600 /home/agentuser/.vnc/passwd \
-    && chown agentuser:agentuser /home/agentuser/.vnc/passwd
-
-
 RUN su - agentuser -c "printf '#!/bin/bash\nexport DISPLAY=:1\nxterm -geometry 80x24+10+10 -ls -title \"Agent Terminal\" &\ntwm\n' > /home/agentuser/.vnc/xstartup" \
     && chmod +x /home/agentuser/.vnc/xstartup \
     && chown agentuser:agentuser /home/agentuser/.vnc/xstartup
