@@ -7,14 +7,18 @@ RUN apt-get update && apt-get install -y \
     python3 python3-pip python3-venv \
     curl wget gnupg ca-certificates \
     git \
-    xvfb xdotool x11-utils x11-apps \
     supervisor \
-    net-tools lsof procps \
-    sudo \
     tigervnc-standalone-server \
     tigervnc-common \
     xterm \
-    && pip3 install psutil 
+    netcat-openbsd \
+    sudo \
+    && rm -rf /var/lib/apt/lists/*
+
+# Setup VNC
+RUN mkdir -p /home/agentuser/.vnc && \
+    echo "passw0rd" | vncpasswd -f > /home/agentuser/.vnc/passwd && \
+    chmod 600 /home/agentuser/.vnc/passwd 
 
 
 RUN npm install -g @google/gemini-cli
@@ -41,6 +45,10 @@ RUN chmod +x /entrypoint.sh
 # Health check for VNC
 COPY src/agent_containers/webdev_agent/vnc-healthcheck.sh /usr/local/bin/vnc-healthcheck.sh
 RUN chmod +x /usr/local/bin/vnc-healthcheck.sh
+
+# Copy health monitoring server
+COPY src/agent_containers/webdev_agent/health_server.py /workspace/health_server.py
+RUN chmod +x /workspace/health_server.py
 
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
   CMD /usr/local/bin/vnc-healthcheck.sh

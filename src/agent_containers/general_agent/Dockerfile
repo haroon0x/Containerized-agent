@@ -17,7 +17,8 @@ RUN apt-get update && apt-get install -y \
     fonts-liberation \
     && rm -rf /var/lib/apt/lists/* \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs 
+    && apt-get install -y nodejs \
+    && pip3 install psutil jupyterlab 
 
 # Install Jupyter Lab
 #RUN pip3 install jupyterlab
@@ -47,6 +48,10 @@ COPY src/agent_containers/general_agent/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 COPY src/agent_containers/general_agent/supervisord.conf /etc/supervisord.conf
+
+# Copy health monitoring server
+COPY src/agent_containers/general_agent/health_server.py /workspace/health_server.py
+RUN chmod +x /workspace/health_server.py
 
 USER agentuser
 

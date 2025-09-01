@@ -45,14 +45,18 @@ docker build -t webdev-agent:latest -f src/agent_containers/webdev_agent/Dockerf
 ```
 
 ### 2. Run the WebDev Agent Container
-Run the container in detached mode (`-d`) and give it a name (`--name my-agent-job`) so you can easily stop it later.
+Run the container in detached mode (`-d`) with the output directory mounted so files are saved automatically:
 
 ```bash
+# First create the output directory
+mkdir -p output
+
+# Run container with output directory mounted
 docker run -d \
   --name my-agent-job \
   -p 6080:6080 \
+  -v "$(pwd)/output:/workspace/output" \
   -e "JOB_PROMPT=Your agent task description here" \
-  -e "VNC_PASSWORD=your-secure-password" \
   -e "GEMINI_API_KEY=your_gemini_api_key" \
   webdev-agent
 ```
@@ -62,18 +66,21 @@ You can view the agent's logs to see its progress:
 ```bash
 docker logs -f my-agent-job
 ```
-You can also access the container's desktop via a web browser at `http://localhost:6080`.
+You can access the terminal where the agent is running via a web browser at `http://localhost:6080` 
+(default VNC password: "password").
 
-### 4. Stop the Container and Get Output
-When the agent's task is complete, stop the container. This will trigger the cleanup script to create the zip archive.
+### 4. Access Output
+The agent's output files will be automatically saved to the `output` directory you created. You can access these files at any time, even after the container exits.
+
+### 5. Container Lifecycle
+The container will automatically stop when the agent's task is complete. You can check its status with:
 ```bash
-docker stop my-agent-job
+docker ps -a | grep my-agent-job
 ```
 
-### 5. Copy the Output
-Copy the generated zip file from the stopped container to your local machine.
+When you're done, you can remove the stopped container:
 ```bash
-docker cp my-agent-job:/workspace/agent_project_*.zip .
+docker rm my-agent-job
 ```
 
 ---
@@ -132,10 +139,9 @@ If you encounter port conflicts, you can modify the port mappings in the `docker
 # Example: Change host port from 6080 to 6081
 docker run -d \
   --name my-agent-job \
-  -p 6080:6080 \
-  -v "$(pwd)/output:/workspace" \
+  -p 6081:6080 \
+  -v "$(pwd)/output:/workspace/output" \
   -e "JOB_PROMPT=Your agent task description here" \
-  -e "VNC_PASSWORD=your-secure-password" \
   -e "GEMINI_API_KEY=your_gemini_api_key" \
   webdev-agent
 ```
