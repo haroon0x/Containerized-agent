@@ -19,6 +19,10 @@ echo "Starting Gemini agent..."
 
 gemini --prompt "$JOB_PROMPT" \
        --all-files \
-       --approval-mode=yolo
+       --approval-mode=yolo \
+       --model "gemini-2.5-flash"
+
+# test command gemini --prompt "build a react app which can handle 100 users sec" --all-files --approval-mode=yolo --model "gemini-2.5-flash"
 
 echo "Agent completed for job $JOB_ID"
+tail -f /dev/null
