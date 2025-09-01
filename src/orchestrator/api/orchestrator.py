@@ -6,10 +6,14 @@ from fastapi import FastAPI, BackgroundTasks, Request, Query, Depends, HTTPExcep
 from fastapi.responses import JSONResponse, FileResponse
 from pydantic import BaseModel
 from src.orchestrator.api.job_manager import job_manager
+from src.orchestrator.api.monitoring import router as monitoring_router
 
 logging.basicConfig(level=logging.INFO)
 
 app = FastAPI()
+
+# Include monitoring endpoints
+app.include_router(monitoring_router, prefix="/monitoring", tags=["monitoring"])
 
 class ScheduleRequest(BaseModel):
     prompt: str
