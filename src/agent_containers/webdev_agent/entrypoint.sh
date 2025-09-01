@@ -10,6 +10,10 @@ JOB_ID=${JOB_ID:-$(date +%s)}
 echo "🚀 Starting agent for job $JOB_ID"
 echo "   Prompt: $JOB_PROMPT"
 
+mkdir -p /tmp/.X11-unix
+chmod 1777 /tmp/.X11-unix
+chown root:root /tmp/.X11-unix
+
 chown -R agentuser:agentuser /workspace 2>/dev/null || true
 chown -R agentuser:agentuser /home/agentuser/.vnc 2>/dev/null || true
 
@@ -34,11 +38,27 @@ if [ ! -f "/home/agentuser/.vnc/passwd" ]; then
 fi
 
 if [ ! -f "/home/agentuser/.vnc/xstartup" ]; then
-    cat > /home/agentuser/.vnc/xstartup << 'EOF'
+cat > /home/agentuser/.vnc/xstartup << 'EOF'
 #!/bin/bash
+unset SESSION_MANAGER
+unset DBUS_SESSION_BUS_ADDRESS
+
 export DISPLAY=:1
-xterm -geometry 80x24+10+10 -ls -title 'Agent Terminal' &
-twm
+[ -r "$HOME/.Xresources" ] && xrdb "$HOME/.Xresources"
+xsetroot -solid '#2e3440' 2>/dev/null || true
+vncconfig -iconic &
+i=0
+while ! xrdb -query >/dev/null 2>&1; do
+  sleep 1
+  i=$((i+1))
+  if [ $i -ge 10 ]; then
+    echo "Display $DISPLAY not ready after 10 attempts"
+    exit 1
+  fi
+done
+xterm -geometry 80x24+10+10 -ls -title 'Agent Terminal' -e bash &
+twm &
+wait
 EOF
     chmod +x /home/agentuser/.vnc/xstartup
     chown agentuser:agentuser /home/agentuser/.vnc/xstartup
