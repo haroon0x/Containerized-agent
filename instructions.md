@@ -37,8 +37,8 @@ sudo systemctl enable docker
 
 ### 1. Build the WebDev Agent Docker Image
 ```bash
-# Navigate to the project root directory
-cd /path/to/Containerized-agent
+# Navigate to the project directory
+cd Containerized-agent
 
 # Build the webdev_agent Docker image
 docker build -t webdev-agent:latest -f src/agent_containers/webdev_agent/Dockerfile .
@@ -75,8 +75,8 @@ echo "GEMINI_API_KEY=your_gemini_api_key" > .env
 
 ### 2. Build and Start All Services
 ```bash
-# Navigate to the project root directory
-cd /path/to/Containerized-agent
+# Navigate to the project directory
+cd Containerized-agent
 
 # Build and start all services in detached mode
 docker-compose up --build -d
