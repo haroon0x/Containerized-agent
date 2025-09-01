@@ -11,9 +11,9 @@ JOB_ID=${JOB_ID:-$(date +%s)}
 
 echo "🚀 Starting agent for job $JOB_ID"
 echo "   Prompt: $JOB_PROMPT"
-# Create output directory
-mkdir -p /workspace/output
-chown -R agentuser:agentuser /workspace/output 2>/dev/null || true
+
+# Ensure workspace is ready
+chown -R agentuser:agentuser /workspace 2>/dev/null || true
 
 echo "Starting Gemini agent..." 
 
@@ -22,7 +22,11 @@ gemini --prompt "$JOB_PROMPT" \
        --approval-mode=yolo \
        --model "gemini-2.5-flash"
 
-# test command gemini --prompt "build a react app which can handle 100 users sec" --all-files --approval-mode=yolo --model "gemini-2.5-flash"
+# Zip the workspace
+echo "📦 Creating project archive..."
+cd /workspace
+zip -r "agent_project_${JOB_ID}.zip" . -x "*.zip"
+echo "✅ Project archived to /workspace/agent_project_${JOB_ID}.zip"
 
 echo "Agent completed for job $JOB_ID"
 tail -f /dev/null

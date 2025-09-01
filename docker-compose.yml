@@ -29,7 +29,7 @@ services:
     restart: unless-stopped
     # Uncomment and set the following if you want to mount output to the host
     volumes:
-     - ./output:/workspace/output
+     - ./output:/workspace/
     # Make sure to run: sudo chown -R 1000:1000 ./output on your host if you mount
 
 volumes:
