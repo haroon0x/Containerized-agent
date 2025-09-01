@@ -21,7 +21,8 @@ RUN useradd -ms /bin/bash agentuser \
     && echo 'agentuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers \
     && mkdir -p /home/agentuser/workspace \
     && chown -R agentuser:agentuser /home/agentuser
-
+    
+RUN npm install -g @google/gemini-cli
 # Switch to the agentuser for user-specific setup
 USER agentuser
 WORKDIR /home/agentuser
@@ -31,7 +32,6 @@ RUN mkdir -p ~/.vnc \
     && printf '#!/bin/bash\nexport DISPLAY=:1\nxterm -geometry 80x24+10+10 -ls -title "Agent Terminal" &\ntwm\n' > ~/.vnc/xstartup \
     && chmod +x ~/.vnc/xstartup
 
-RUN npm install -g @google/gemini-cli
 RUN git clone https://github.com/novnc/noVNC.git /opt/noVNC \
     && git clone https://github.com/novnc/websockify /opt/noVNC/utils/websockify
 
