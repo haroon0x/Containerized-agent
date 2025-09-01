@@ -45,23 +45,36 @@ docker build -t webdev-agent:latest -f src/agent_containers/webdev_agent/Dockerf
 ```
 
 ### 2. Run the WebDev Agent Container
-```bash
-# Create an output directory on your host machine
-mkdir -p ./output
-chmod 777 ./output
+Run the container in detached mode (`-d`) and give it a name (`--name my-agent-job`) so you can easily stop it later.
 
-# Run the container with your job prompt
-docker run -it --rm \
-  -e JOB_PROMPT="Create a simple React application with a counter component" \
-  -e GEMINI_API_KEY="your_gemini_api_key" \
-  -p 6080:6080 -p 8888:8888 -p 8000:8000 \
-  -v $(pwd)/output:/workspace/output \
-  webdev-agent:latest
+```bash
+docker run -d \
+  --name my-agent-job \
+  -p 6080:6080 \
+  -e "JOB_PROMPT=Your agent task description here" \
+  -e "VNC_PASSWORD=your-secure-password" \
+  -e "GEMINI_API_KEY=your_gemini_api_key" \
+  webdev-agent
 ```
 
-### 3. Access the WebDev Agent
-- VNC Interface: Open your browser and navigate to `http://localhost:6080`
-- Web Application (if created): `http://localhost:8000`
+### 3. Monitor the Agent
+You can view the agent's logs to see its progress:
+```bash
+docker logs -f my-agent-job
+```
+You can also access the container's desktop via a web browser at `http://localhost:6080`.
+
+### 4. Stop the Container and Get Output
+When the agent's task is complete, stop the container. This will trigger the cleanup script to create the zip archive.
+```bash
+docker stop my-agent-job
+```
+
+### 5. Copy the Output
+Copy the generated zip file from the stopped container to your local machine.
+```bash
+docker cp my-agent-job:/workspace/agent_project_*.zip .
+```
 
 ---
 
@@ -117,7 +130,13 @@ docker-compose down
 If you encounter port conflicts, you can modify the port mappings in the `docker-compose.yml` file or when running the container:
 ```bash
 # Example: Change host port from 6080 to 6081
-docker run -it --rm -e JOB_PROMPT="Your prompt" -p 6081:6080 webdev-agent:latest
+docker run -d \
+  --name my-agent-job \
+  -p 6081:6080 \
+  -e "JOB_PROMPT=Your prompt" \
+  -e "VNC_PASSWORD=your-secure-password" \
+  -e "GEMINI_API_KEY=your_gemini_api_key" \
+  webdev-agent:latest
 ```
 
 #### 2. Permission Issues with Output Directory
@@ -142,31 +161,3 @@ Ensure your Gemini API key is correctly set in the environment variables or .env
 
 #### 5. Permission Issues with entrypoint.sh
 If you encounter permission issues with the entrypoint.sh file during the build process, ensure that the chmod command is executed before switching to the non-root user in the Dockerfile.
-
-#### 6. Gemini API Rate Limits
-If you encounter errors related to Gemini API rate limits (HTTP 429 Too Many Requests), try the following:
-
-```bash
-# Wait a few minutes before retrying
-# The free tier is limited to 2 requests per minute for gemini-2.5-pro
-
-# Consider using a different model with higher rate limits
-# Edit the entrypoint.sh file to change the model
-sed -i 's/gemini-2.5-pro/gemini-2.5-flash/g' src/agent_containers/webdev_agent/entrypoint.sh
-
-# Or upgrade your API key to a paid tier
-# Visit: https://ai.google.dev/pricing
-```
-
-#### 7. Output Files Not Being Generated
-If Gemini isn't generating output files in the expected location:
-
-```bash
-# Check the job-specific output directory
-ls -la ./output/[JOB_ID]/
-
-# The JOB_ID is printed in the container logs when the job starts
-# Each job gets its own directory under the output folder
-```
-
----

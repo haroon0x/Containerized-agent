@@ -32,24 +32,21 @@ RUN useradd -ms /bin/bash agentuser \
 
 RUN ln -s /home/agentuser/workspace /workspace
 
+# Copy configuration files
+COPY src/agent_containers/webdev_agent/supervisord.conf /etc/supervisord.conf
+COPY src/agent_containers/webdev_agent/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-# noVNC setup
+# Health check for VNC
 COPY src/agent_containers/webdev_agent/vnc-healthcheck.sh /usr/local/bin/vnc-healthcheck.sh
 RUN chmod +x /usr/local/bin/vnc-healthcheck.sh
 
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
-CMD /usr/local/bin/vnc-healthcheck.sh
-
-# entrypouint and supervisord config
-COPY src/agent_containers/webdev_agent/entrypoint.sh /entrypoint.sh
-COPY src/agent_containers/webdev_agent/supervisord.conf /etc/supervisord.conf
-RUN chmod +x /entrypoint.sh
+  CMD /usr/local/bin/vnc-healthcheck.sh
 
 USER agentuser
 WORKDIR /home/agentuser/workspace
 
-
-
-EXPOSE 6080 8888 8000   
+EXPOSE 6080 8888 8000
 
 ENTRYPOINT ["/entrypoint.sh"]
