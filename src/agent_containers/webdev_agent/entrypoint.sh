@@ -17,10 +17,10 @@ chown -R agentuser:agentuser /workspace 2>/dev/null || true
 
 echo "Starting Gemini agent..." 
 
-gemini --prompt "$JOB_PROMPT" \
+gemini  --model "gemini-2.5-flash" \
+        --prompt "$JOB_PROMPT" \
        --all-files \
-       --approval-mode=yolo \
-       --model "gemini-2.5-flash"
+       --approval-mode=yolo 
 
 # Zip the workspace
 echo "📦 Creating project archive..."

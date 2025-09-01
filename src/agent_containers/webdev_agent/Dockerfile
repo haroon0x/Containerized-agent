@@ -26,13 +26,21 @@ RUN git clone https://github.com/novnc/noVNC.git /opt/noVNC \
 RUN useradd -ms /bin/bash agentuser \
     && usermod -aG sudo agentuser \
     && echo 'agentuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers \
-    && mkdir -p /home/agentuser/workspace/output \
+    && mkdir -p /home/agentuser/workspace/ \
     && chown -R agentuser:agentuser /home/agentuser
 
 
 RUN ln -s /home/agentuser/workspace /workspace
 
-# Copy configs
+
+# noVNC setup
+COPY src/agent_containers/webdev_agent/vnc-healthcheck.sh /usr/local/bin/vnc-healthcheck.sh
+RUN chmod +x /usr/local/bin/vnc-healthcheck.sh
+
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+CMD /usr/local/bin/vnc-healthcheck.sh
+
+# entrypouint and supervisord config
 COPY src/agent_containers/webdev_agent/entrypoint.sh /entrypoint.sh
 COPY src/agent_containers/webdev_agent/supervisord.conf /etc/supervisord.conf
 RUN chmod +x /entrypoint.sh
