@@ -18,7 +18,7 @@ services:
   agent-builder:
     build:
       context: .
-      dockerfile: src/agent_container/Dockerfile
+      dockerfile: src/agent_containers/general_agent/Dockerfile
     image: containerized-agent:latest
     ports:
       - "6080:6080"
@@ -33,4 +33,4 @@ services:
     # Make sure to run: sudo chown -R 1000:1000 ./output on your host if you mount
 
 volumes:
-  agent_outputs: 
+  agent_outputs:

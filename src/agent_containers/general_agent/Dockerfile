@@ -1,4 +1,4 @@
-FROM node:22-bookworm-slim
+FROM debian:bookworm-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -13,36 +13,43 @@ RUN apt-get update && apt-get install -y \
     sudo \
     tigervnc-standalone-server \
     tigervnc-common \
-    xterm 
+    xterm \
+    fonts-liberation \
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs 
 
+# Install Jupyter Lab
+#RUN pip3 install jupyterlab
 
 RUN npm install -g @google/gemini-cli
 
 
+#COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+
+#RUN npm install -g typescript
+
 RUN git clone https://github.com/novnc/noVNC.git /opt/noVNC \
     && git clone https://github.com/novnc/websockify /opt/noVNC/utils/websockify
-
 
 RUN useradd -ms /bin/bash agentuser \
     && usermod -aG sudo agentuser \
     && echo 'agentuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers \
+    && chown -R agentuser:agentuser /home/agentuser \
     && mkdir -p /home/agentuser/workspace/output \
-    && chown -R agentuser:agentuser /home/agentuser
+    && chown -R agentuser:agentuser /home/agentuser/workspace/output \
+    && ln -s /home/agentuser/workspace /workspace
 
-
-RUN ln -s /home/agentuser/workspace /workspace
-
-USER agentuser
 WORKDIR /home/agentuser/workspace
 
-
-# Copy configs
-COPY src/agent_container/webdev_agent/entrypoint.sh /entrypoint.sh
-COPY src/agent_container/webdev_agent/supervisord.conf /etc/supervisord.conf
+COPY src/agent_containers/general_agent/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
+COPY src/agent_containers/general_agent/supervisord.conf /etc/supervisord.conf
 
+USER agentuser
 
-    EXPOSE 6080 8888 8000   
+EXPOSE 6080 8888 8000
 
 ENTRYPOINT ["/entrypoint.sh"]
