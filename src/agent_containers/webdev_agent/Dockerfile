@@ -24,7 +24,6 @@ RUN npm install -g @google/gemini-cli
 # Creates a symlink for access
 RUN ln -sf /home/agentuser/workspace /workspace 
 
-COPY src/agent_containers/webdev_agent/supervisord.conf /etc/supervisord.conf
 COPY src/agent_containers/webdev_agent/entrypoint.sh /entrypoint.sh
 
 RUN chmod +x /entrypoint.sh 

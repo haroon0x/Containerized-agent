@@ -24,8 +24,8 @@ cleanup() {
     echo "📦 Creating project archive..."
     cd /workspace
     if [ "$(ls -A .)" ]; then
-        zip -r "project_${JOB_ID}.zip" . -x "*.zip" -x "*/.zip"    2>/dev/null || true
-        echo "✅ Project archived to /workspace/project_${JOB_ID}.zip"
+        zip -r "agent_project_${JOB_ID}.zip" . -x "*.zip" 2>/dev/null || true
+        echo "✅ Project archived to /workspace/agent_project_${JOB_ID}.zip"
     else
         echo "⚠️  No files found in workspace to archive"
     fi
@@ -33,9 +33,11 @@ cleanup() {
 }
 trap cleanup SIGTERM SIGINT
 
-export JOB_PROMPT
-export JOB_ID
-export GEMINI_API_KEY
+# Run Gemini agent directly (no supervisor needed)
+gemini --model "gemini-2.5-flash" \
+    --prompt "$JOB_PROMPT" \
+    --all-files \
+    --approval-mode=yolo
 
-echo "🔧 Starting services..."
-exec supervisord -c /etc/supervisord.conf
+
+echo "Agent completed for job $JOB_ID"    
