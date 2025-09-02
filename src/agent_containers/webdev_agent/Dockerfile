@@ -15,16 +15,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     netcat-openbsd \
     sudo \
     zip \
+    procps \
     && rm -rf /var/lib/apt/lists/*
 
 RUN useradd -ms /bin/bash agentuser \
     && usermod -aG sudo agentuser \
     && echo 'agentuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers \
     && mkdir -p /home/agentuser/workspace \
+    && mkdir -p /home/agentuser/.vnc \
     && chown -R agentuser:agentuser /home/agentuser
-
-USER root
-
 
 RUN npm install -g @google/gemini-cli
 
@@ -32,23 +31,31 @@ RUN git clone https://github.com/novnc/noVNC.git /opt/noVNC \
     && git clone https://github.com/novnc/websockify /opt/noVNC/utils/websockify \
     && chown -R agentuser:agentuser /opt/noVNC
 
-RUN pip3 install --no-cache-dir -r /opt/noVNC/utils/websockify/requirements.txt
+RUN pip3 install --no-cache-dir websockify
 
-USER agentuser
-WORKDIR /home/agentuser
+RUN mkdir -p /home/agentuser/.vnc \
+    && echo "passw0rd" | vncpasswd -f > /home/agentuser/.vnc/passwd \
+    && chmod 600 /home/agentuser/.vnc/passwd \
+    && chown -R agentuser:agentuser /home/agentuser/.vnc
 
-RUN ln -s /home/agentuser/workspace /workspace
+RUN ln -sf /home/agentuser/workspace /workspace
 
 COPY src/agent_containers/webdev_agent/supervisord.conf /etc/supervisord.conf
 COPY src/agent_containers/webdev_agent/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
 COPY src/agent_containers/webdev_agent/vnc-healthcheck.sh /usr/local/bin/vnc-healthcheck.sh
-RUN chmod +x /usr/local/bin/vnc-healthcheck.sh
-HEALTHCHECK --interval=30s --timeout=10s --retries=3 CMD /usr/local/bin/vnc-healthcheck.sh
+COPY src/agent_containers/webdev_agent/xstartup /home/agentuser/.vnc/xstartup
 
+RUN chmod +x /entrypoint.sh \
+    && chmod +x /usr/local/bin/vnc-healthcheck.sh \
+    && chmod +x /home/agentuser/.vnc/xstartup \
+    && chown agentuser:agentuser /home/agentuser/.vnc/xstartup
+
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+    CMD /usr/local/bin/vnc-healthcheck.sh
+
+USER agentuser
 WORKDIR /home/agentuser/workspace
 
-EXPOSE 6080 8888 8000
+EXPOSE 5901 6080 8888 8000
 
 ENTRYPOINT ["/entrypoint.sh"]
