@@ -1,14 +1,18 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 
 const API_URL = 'http://localhost:8000';
 
-const JobForm = ({ onJobScheduled }) => {
+interface JobFormProps {
+  onJobScheduled: () => void;
+}
+
+const JobForm: React.FC<JobFormProps> = ({ onJobScheduled }) => {
   const [prompt, setPrompt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!prompt.trim()) return;
 

@@ -1,8 +1,24 @@
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, type Variants, type Transition } from 'framer-motion';
 import { FiInfo, FiTrash2, FiDownload, FiCircle, FiAlertCircle, FiLoader } from 'react-icons/fi';
 import { formatDistanceToNow } from 'date-fns';
+
+// Define the type for a single job
+export interface Job {
+  job_id: string;
+  status: 'pending' | 'running' | 'completed' | 'failed';
+  prompt: string;
+  created_at: string;
+}
+
+// Define the type for the component's props
+interface JobListProps {
+  jobs: Job[];
+  onShowDetails: (job: Job) => void;
+  onCancel: (jobId: string) => void;
+  onDownload: (jobId: string) => void;
+}
 
 const statusConfig = {
   pending: { color: 'var(--foreground-muted)', icon: <FiCircle size={8} /> },
@@ -11,18 +27,18 @@ const statusConfig = {
   failed: { color: '#ef4444', icon: <FiCircle size={8} style={{ fill: '#ef4444' }} /> },
 };
 
-const JobList = ({ jobs, onShowDetails, onCancel, onDownload }) => {
-  const containerVariants = {
+const JobList: React.FC<JobListProps> = ({ jobs, onShowDetails, onCancel, onDownload }) => {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: { staggerChildren: 0.05, delayChildren: 0.1 }
+      transition: { staggerChildren: 0.05, delayChildren: 0.1 } as Transition
     }
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { y: 10, opacity: 0 },
-    visible: { y: 0, opacity: 1, transition: { type: 'spring', stiffness: 100 } }
+    visible: { y: 0, opacity: 1, transition: { type: 'spring', stiffness: 100 } as Transition }
   };
 
   if (jobs.length === 0) {

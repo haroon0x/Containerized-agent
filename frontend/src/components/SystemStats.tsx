@@ -1,13 +1,23 @@
 
-import React from 'react';
-import { FiBox, FiLoader, FiCheckCircle, FiXCircle } from 'react-icons/fi';
+import { FiBox, FiLoader, FiCheckCircle } from 'react-icons/fi';
+import type { Job } from './JobList';
 
-const SystemStats = ({ jobs }) => {
+interface SystemStatsProps {
+  jobs: Job[];
+}
+
+const SystemStats: React.FC<SystemStatsProps> = ({ jobs }) => {
   const totalJobs = jobs.length;
-  const runningJobs = jobs.filter(j => j.status === 'running').length;
-  const completedJobs = jobs.filter(j => j.status === 'completed').length;
+  const runningJobs = jobs.filter((j: Job) => j.status === 'running').length;
+  const completedJobs = jobs.filter((j: Job) => j.status === 'completed').length;
 
-  const Stat = ({ value, label, icon }) => (
+  interface StatProps {
+    value: number;
+    label: string;
+    icon: React.ReactElement;
+  }
+
+  const Stat: React.FC<StatProps> = ({ value, label, icon }) => (
     <div className="d-flex align-items-center">
       {icon}
       <span className="ms-2">{value} {label}</span>

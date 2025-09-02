@@ -1,11 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
+import type { Job } from './JobList';
+
+interface JobDetailsProps {
+  job: Job;
+  onClose: () => void;
+}
 
 const API_URL = 'http://localhost:8000';
 
-const JobDetails = ({ job, onClose }) => {
+const JobDetails: React.FC<JobDetailsProps> = ({ job, onClose }) => {
   const [logs, setLogs] = useState('');
   const [isLoadingLogs, setIsLoadingLogs] = useState(false);
 

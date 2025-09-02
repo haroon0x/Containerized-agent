@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Toaster, toast } from 'react-hot-toast';
 import Header from './components/Header';
@@ -7,13 +7,14 @@ import JobForm from './components/JobForm';
 import JobList from './components/JobList';
 import JobDetails from './components/JobDetails';
 import SystemStats from './components/SystemStats';
+import type { Job } from './components/JobList'; // Import Job interface
 import './App.css';
 
 const API_URL = 'http://localhost:8000';
 
 function App() {
-  const [jobs, setJobs] = useState([]);
-  const [selectedJob, setSelectedJob] = useState(null);
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
 
   useEffect(() => {
     document.body.className = 'dark';
@@ -22,7 +23,7 @@ function App() {
   const fetchJobs = async () => {
     try {
       const response = await axios.get(`${API_URL}/jobs`);
-      const sortedJobs = response.data.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      const sortedJobs = response.data.sort((a: Job, b: Job) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       setJobs(sortedJobs);
     } catch (error) {
       console.error("Error fetching jobs:", error);
@@ -36,10 +37,10 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleShowDetails = (job) => setSelectedJob(job);
+  const handleShowDetails = (job: Job) => setSelectedJob(job);
   const handleCloseDetails = () => setSelectedJob(null);
 
-  const handleCancel = async (jobId) => {
+  const handleCancel = async (jobId: string) => {
     toast.promise(
       axios.post(`${API_URL}/cancel/${jobId}`),
       {
@@ -54,7 +55,7 @@ function App() {
     );
   };
 
-  const handleDownload = (jobId) => {
+  const handleDownload = (jobId: string) => {
     window.open(`${API_URL}/download/${jobId}`, '_blank');
   };
 
