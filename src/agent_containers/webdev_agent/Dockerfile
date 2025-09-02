@@ -26,5 +26,6 @@ RUN chmod +x /entrypoint.sh
 
 USER agentuser
 WORKDIR /workspace
+COPY src/agent_containers/webdev_agent/GEMINI.md .
 
 ENTRYPOINT ["/entrypoint.sh"]
