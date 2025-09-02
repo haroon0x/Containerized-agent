@@ -54,7 +54,6 @@ mkdir -p output
 # Run container with output directory mounted
 docker run -d \
   --name my-agent-job \
-  -p 6080:6080 \
   -v "$(pwd)/output:/workspace/output" \
   -e "JOB_PROMPT=Your agent task description here" \
   -e "GEMINI_API_KEY=your_gemini_api_key" \
