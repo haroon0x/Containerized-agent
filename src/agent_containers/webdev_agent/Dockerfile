@@ -6,10 +6,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-pip python3-venv \
     curl wget gnupg ca-certificates \
     git \
-    supervisor \
     sudo \
     zip \
-    procps \
     sysstat \
     && rm -rf /var/lib/apt/lists/*
 
@@ -21,14 +19,12 @@ RUN useradd -ms /bin/bash agentuser \
 
 RUN npm install -g @google/gemini-cli
 
-# Creates a symlink for access
-RUN ln -sf /home/agentuser/workspace /workspace 
 
 COPY src/agent_containers/webdev_agent/entrypoint.sh /entrypoint.sh
 
 RUN chmod +x /entrypoint.sh 
 
 USER agentuser
-WORKDIR /home/agentuser/workspace
+WORKDIR /workspace
 
 ENTRYPOINT ["/entrypoint.sh"]
