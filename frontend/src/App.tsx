@@ -9,25 +9,15 @@ import JobDetails from './components/JobDetails';
 import SystemStats from './components/SystemStats';
 import './App.css';
 
-type Theme = 'light' | 'dark';
-
 const API_URL = 'http://localhost:8000';
 
 function App() {
   const [jobs, setJobs] = useState([]);
   const [selectedJob, setSelectedJob] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [theme, setTheme] = useState<Theme>('dark');
-
-  const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    document.body.className = newTheme;
-  };
 
   useEffect(() => {
-    document.body.className = theme;
-  }, [theme]);
+    document.body.className = 'dark';
+  }, []);
 
   const fetchJobs = async () => {
     try {
@@ -37,8 +27,6 @@ function App() {
     } catch (error) {
       console.error("Error fetching jobs:", error);
       toast.error('Could not fetch jobs.');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -61,7 +49,8 @@ function App() {
           return <b>Job cancelled.</b>;
         },
         error: <b>Could not cancel job.</b>,
-      }
+      },
+      { style: { background: 'var(--card)', color: 'var(--foreground)', border: '1px solid var(--border)' } }
     );
   };
 
@@ -70,32 +59,23 @@ function App() {
   };
 
   return (
-    <div className={theme}>
-      <Toaster position="bottom-right" toastOptions={{ style: { background: 'var(--card)', color: 'var(--foreground)' } }} />
-      <Header theme={theme} toggleTheme={toggleTheme} />
-      <main className="container py-4">
-        <div className="bento-grid">
-          <div className="bento-box job-form-box">
-            <h2 className="h5 mb-4">New Job</h2>
-            <JobForm onJobScheduled={fetchJobs} />
-          </div>
-          <div className="bento-box stats-box">
-             <SystemStats jobs={jobs} />
-          </div>
-          <div className="bento-box job-list-box">
-            <h2 className="h5 mb-4">Job Status</h2>
-            <JobList
-              jobs={jobs}
-              isLoading={loading}
-              onShowDetails={handleShowDetails}
-              onCancel={handleCancel}
-              onDownload={handleDownload}
-            />
-          </div>
+    <>
+      <Toaster position="bottom-right" />
+      <Header />
+      <main className="container mt-5">
+        <div className="mx-auto" style={{ maxWidth: '720px' }}>
+          <SystemStats jobs={jobs} />
+          <JobForm onJobScheduled={fetchJobs} />
+          <JobList
+            jobs={jobs}
+            onShowDetails={handleShowDetails}
+            onCancel={handleCancel}
+            onDownload={handleDownload}
+          />
         </div>
       </main>
       {selectedJob && <JobDetails job={selectedJob} onClose={handleCloseDetails} />}
-    </div>
+    </>
   );
 }
 

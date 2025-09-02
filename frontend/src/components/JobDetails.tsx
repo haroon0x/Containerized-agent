@@ -31,51 +31,46 @@ const JobDetails = ({ job, onClose }) => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+      onClick={onClose}
     >
-      <div className="modal-dialog modal-lg modal-dialog-centered">
+      <div className="modal-dialog modal-lg modal-dialog-centered" onClick={e => e.stopPropagation()}>
         <motion.div
           className="modal-content"
-          initial={{ y: -50, opacity: 0 }}
+          initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -50, opacity: 0 }}
-          style={{ 
-            backgroundColor: 'color-mix(in srgb, var(--card) 90%, transparent)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius)'
-          }}
+          exit={{ y: 20, opacity: 0 }}
         >
           <div className="modal-header border-0">
-            <h5 className="modal-title">Job Details</h5>
+            <h5 className="modal-title h6">Job Details</h5>
             <button type="button" className="btn-close-white" onClick={onClose}></button>
           </div>
           <div className="modal-body">
-            <div className="mb-3">
-              <strong className="d-block text-muted mb-1">Job ID</strong>
-              <span>{job.job_id}</span>
+            <div className="mb-4">
+              <strong className="d-block small mb-1" style={{ color: 'var(--foreground-muted)' }}>Job ID</strong>
+              <span className="font-monospace">{job.job_id}</span>
             </div>
-            <div className="mb-3">
-              <strong className="d-block text-muted mb-1">Status</strong>
+            <div className="mb-4">
+              <strong className="d-block small mb-1" style={{ color: 'var(--foreground-muted)' }}>Status</strong>
               <span>{job.status}</span>
             </div>
-            <div className="mb-3">
-              <strong className="d-block text-muted mb-1">Prompt</strong>
-              <p>{job.prompt}</p>
+            <div className="mb-4">
+              <strong className="d-block small mb-1" style={{ color: 'var(--foreground-muted)' }}>Prompt</strong>
+              <p className="mb-0">{job.prompt}</p>
             </div>
-            <div className="mb-3">
-              <strong className="d-block text-muted mb-1">Created At</strong>
+            <div className="mb-4">
+              <strong className="d-block small mb-1" style={{ color: 'var(--foreground-muted)' }}>Created At</strong>
               <span>{new Date(job.created_at).toLocaleString()}</span>
             </div>
             
-            <h6 className="mt-4">Logs</h6>
-            <pre className="p-3 rounded" style={{ 
+            <h6 className="small" style={{ color: 'var(--foreground-muted)' }}>Logs</h6>
+            <pre className="p-3 rounded small" style={{ 
               backgroundColor: 'var(--background)', 
               minHeight: '200px', 
               maxHeight: '400px', 
               overflowY: 'auto',
               border: '1px solid var(--border)'
             }}>
-              {isLoadingLogs ? 'Loading logs...' : <code>{logs}</code>}
+              {isLoadingLogs ? 'Loading logs...' : <code className='font-monospace'>{logs}</code>}
             </pre>
           </div>
         </motion.div>

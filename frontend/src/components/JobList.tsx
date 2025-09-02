@@ -1,86 +1,68 @@
 
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { FiInfo, FiTrash2, FiDownload, FiCircle, FiAlertCircle } from 'react-icons/fi';
-import SkeletonLoader from './SkeletonLoader';
 
 const statusConfig = {
-  pending: { icon: FiCircle, color: 'var(--muted-foreground)' },
-  running: { icon: FiCircle, color: '#f59e0b' },
-  completed: { icon: FiCircle, color: '#10b981' },
-  failed: { icon: FiCircle, color: '#ef4444' },
+  pending: { color: 'var(--foreground-muted)' },
+  running: { color: '#f59e0b' },
+  completed: { color: '#10b981' },
+  failed: { color: '#ef4444' },
 };
 
-const JobList = ({ jobs, isLoading, onShowDetails, onCancel, onDownload }) => {
-  if (isLoading) {
-    return <SkeletonLoader />;
-  }
-
+const JobList = ({ jobs, onShowDetails, onCancel, onDownload }) => {
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: { staggerChildren: 0.07 }
+      transition: { staggerChildren: 0.05, delayChildren: 0.1 }
     }
   };
 
   const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: { y: 0, opacity: 1 }
+    hidden: { y: 10, opacity: 0 },
+    visible: { y: 0, opacity: 1, transition: { type: 'spring', stiffness: 100 } }
   };
 
+  if (jobs.length === 0) {
+    return (
+      <div className="text-center py-5 mt-5 border-top" style={{ borderColor: 'var(--border)' }}>
+        <FiAlertCircle size={24} className="mx-auto mb-3" style={{ color: 'var(--foreground-muted)' }} />
+        <h3 className="h6" style={{ color: 'var(--foreground-muted)' }}>No Jobs Yet</h3>
+      </div>
+    );
+  }
+
   return (
-    <AnimatePresence>
-      {jobs.length === 0 ? (
-        <motion.div
-          className="text-center py-5"
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-        >
-          <FiAlertCircle size={48} className="mx-auto mb-3" style={{ color: 'var(--muted-foreground)' }} />
-          <h3 className="h5">No Jobs Found</h3>
-          <p className="text-muted">Schedule a new job to get started.</p>
-        </motion.div>
-      ) : (
-        <motion.div
-          className="list-group"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {jobs.map(job => (
-            <motion.div
-              key={job.job_id}
-              className="list-group-item list-group-item-action d-flex justify-content-between align-items-center mb-2"
-              variants={itemVariants}
-              layout
-              style={{
-                backgroundColor: 'var(--muted)',
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--radius)'
-              }}
-            >
-              <div className="d-flex align-items-center">
-                <statusConfig.icon
-                  size={14}
-                  color={statusConfig[job.status]?.color || 'gray'}
-                  style={{ fill: statusConfig[job.status]?.color || 'gray' }}
-                />
-                <div className="ms-3">
-                  <p className="mb-0 fw-medium">{job.prompt || job.job_id}</p>
-                  <small className="text-muted">{new Date(job.created_at).toLocaleString()}</small>
-                </div>
+    <motion.section
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <div className="list-group list-group-flush">
+        {jobs.map(job => (
+          <motion.div
+            key={job.job_id}
+            className="list-group-item d-flex justify-content-between align-items-center px-1 py-3"
+            style={{ backgroundColor: 'transparent', borderBottom: '1px solid var(--border)' }}
+            variants={itemVariants}
+          >
+            <div className="d-flex align-items-center">
+              <FiCircle size={8} color={statusConfig[job.status]?.color || 'gray'} style={{ fill: statusConfig[job.status]?.color || 'gray' }} />
+              <div className="ms-3">
+                <p className="mb-0 fw-medium">{job.prompt || job.job_id}</p>
+                <small style={{ color: 'var(--foreground-muted)' }}>{new Date(job.created_at).toLocaleString()}</small>
               </div>
-              <div>
-                <button className="btn-ghost" onClick={() => onShowDetails(job)}><FiInfo /></button>
-                <button className="btn-ghost" onClick={() => onCancel(job.job_id)}><FiTrash2 /></button>
-                <button className="btn-ghost" onClick={() => onDownload(job.job_id)}><FiDownload /></button>
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
-      )}
-    </AnimatePresence>
+            </div>
+            <div className="d-flex align-items-center">
+              <button className="btn-ghost" onClick={() => onShowDetails(job)}><FiInfo size={16} /></button>
+              <button className="btn-ghost" onClick={() => onCancel(job.job_id)}><FiTrash2 size={16} /></button>
+              <button className="btn-ghost" onClick={() => onDownload(job.job_id)}><FiDownload size={16} /></button>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </motion.section>
   );
 };
 

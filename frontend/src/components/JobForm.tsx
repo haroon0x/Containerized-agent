@@ -21,45 +21,38 @@ const JobForm = ({ onJobScheduled }) => {
       success: () => {
         setPrompt('');
         onJobScheduled();
-        return <b>Job scheduled successfully!</b>;
+        return <b>Job scheduled.</b>;
       },
       error: <b>Could not schedule job.</b>,
-    });
+    }, { style: { background: 'var(--card)', color: 'var(--foreground)', border: '1px solid var(--border)' } });
 
     setIsLoading(false);
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="mb-3">
-        <textarea
-          id="prompt"
-          className="form-control"
-          rows={5}
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Enter a task for the AI agent..."
-          style={{
-            backgroundColor: 'var(--input)',
-            color: 'var(--foreground)',
-            borderColor: 'var(--border)',
-            resize: 'none'
-          }}
-        />
-      </div>
-      <button
-        type="submit"
-        className="btn w-100 fw-medium"
-        disabled={isLoading}
-        style={{
-          background: 'var(--accent-gradient)',
-          color: 'var(--primary-foreground)',
-          border: 'none'
-        }}
-      >
-        {isLoading ? 'Scheduling...' : 'Schedule Job'}
-      </button>
-    </form>
+    <section className="mb-5">
+      <form onSubmit={handleSubmit}>
+        <div className="mb-3">
+          <textarea
+            id="prompt"
+            className="form-control"
+            rows={3}
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="Enter a task..."
+          />
+        </div>
+        <div className="text-end">
+          <button
+            type="submit"
+            className="btn-primary"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Scheduling...' : 'Schedule'}
+          </button>
+        </div>
+      </form>
+    </section>
   );
 };
 
