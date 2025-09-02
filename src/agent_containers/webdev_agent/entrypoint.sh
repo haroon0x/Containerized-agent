@@ -36,6 +36,6 @@ trap cleanup SIGTERM SIGINT
 # Run Gemini agent directly (no supervisor needed)
 gemini --model "gemini-2.5-flash" --prompt "$JOB_PROMPT" --all-files --approval-mode=yolo
 
-# test command gemini --prompt "build a react app which can handle 100 users sec" --all-files --approval-mode=yolo --model "gemini-2.5-flash"
+# test command gemini --prompt "build a react app which can handle 10 users sec" --all-files --approval-mode=yolo --model "gemini-2.5-flash"
 
 echo "Agent completed for job $JOB_ID"    
