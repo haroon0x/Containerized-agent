@@ -31,7 +31,7 @@ RUN git clone https://github.com/novnc/noVNC.git /opt/noVNC \
     && git clone https://github.com/novnc/websockify /opt/noVNC/utils/websockify \
     && chown -R agentuser:agentuser /opt/noVNC
 
-RUN pip3 install --no-cache-dir websockify
+RUN pip3 install --no-cache-dir --break-system-packages websockify
 
 RUN mkdir -p /home/agentuser/.vnc \
     && echo "passw0rd" | vncpasswd -f > /home/agentuser/.vnc/passwd \
