@@ -59,7 +59,7 @@ class JobManager:
                 AGENT_IMAGE,
                 detach=True,
                 environment={"JOB_PROMPT": prompt, "JOB_ID": job_id},
-                volumes={output_path: {"bind": "/workspace/output", "mode": "rw"}},
+                volumes={output_path: {"bind": "/workspace", "mode": "rw"}},
                 name=f"agent_job_{job_id[:8]}",
                 mem_limit="2g",
                 cpu_period=100000,
