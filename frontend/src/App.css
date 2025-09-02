@@ -1,0 +1,89 @@
+:root {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --radius: 0.75rem;
+}
+
+/* Light Theme */
+body.light {
+  --background: #f4f4f5;
+  --foreground: #18181b;
+  --card: #ffffff;
+  --card-foreground: #18181b;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  --primary: #2563eb;
+  --primary-foreground: #fafafa;
+  --border: #e4e4e7;
+  --input: #ffffff;
+  --accent-gradient: linear-gradient(to right, #3b82f6, #2563eb);
+  --card-glow: 0 0 20px rgba(0, 0, 0, 0.05);
+}
+
+/* Dark Theme */
+body.dark {
+  --background: #09090b;
+  --foreground: #fafafa;
+  --card: #18181b;
+  --card-foreground: #fafafa;
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+  --primary: #3b82f6;
+  --primary-foreground: #fafafa;
+  --border: #27272a;
+  --input: #27272a;
+  --accent-gradient: linear-gradient(to right, #3b82f6, #60a5fa);
+  --card-glow: 0 0 20px rgba(59, 130, 246, 0.1);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Bento Grid Layout */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: auto auto;
+  gap: 1rem;
+}
+
+.bento-box {
+  background-color: color-mix(in srgb, var(--card) 70%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  box-shadow: var(--card-glow);
+}
+
+.bento-box:hover {
+  border-color: color-mix(in srgb, var(--primary) 50%, transparent);
+}
+
+.job-list-box { grid-column: span 2; grid-row: span 2; }
+.job-form-box { grid-column: span 1; }
+.stats-box { grid-column: span 1; }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 10px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--muted-foreground);
+}
