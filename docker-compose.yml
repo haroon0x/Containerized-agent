@@ -6,31 +6,21 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - AGENT_IMAGE=containerized-agent:latest
+      - AGENT_IMAGE=webdev-agent:latest
       - AGENT_OUTPUT_DIR=/tmp/agent_jobs
       - RETENTION_DAYS=1
     volumes:
       - agent_outputs:/tmp/agent_jobs
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
-      - agent-builder
+      - webdev_agent_builder
 
-  agent-builder:
+  webdev_agent_builder:
     build:
       context: .
-      dockerfile: src/agent_containers/general_agent/Dockerfile
-    image: containerized-agent:latest
-    ports:
-      - "6080:6080"
-      - "8888:8888"
-    environment:
-      - DISPLAY=:1
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-    restart: unless-stopped
-    # Uncomment and set the following if you want to mount output to the host
-    volumes:
-     - ./output:/workspace/
-    # Make sure to run: sudo chown -R 1000:1000 ./output on your host if you mount
+      dockerfile: src/agent_containers/webdev_agent/Dockerfile
+    image: webdev-agent:latest
+    command: ["echo", "webdev-agent image built successfully"]
 
 volumes:
   agent_outputs:
