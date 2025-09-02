@@ -34,7 +34,7 @@ cleanup() {
 trap cleanup SIGTERM SIGINT
 
 # Run Gemini agent directly (no supervisor needed)
-gemini --model "gemini-2.5-flash" \
+exec gemini --model "gemini-2.5-flash" \
     --prompt "$JOB_PROMPT" \
     --all-files \
     --approval-mode=yolo
