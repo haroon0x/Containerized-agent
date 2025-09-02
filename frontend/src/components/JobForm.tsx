@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
@@ -39,8 +38,11 @@ const JobForm = ({ onJobScheduled }) => {
             rows={3}
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Enter a task..."
+            placeholder="Enter a task for the AI agent..."
           />
+          <div className="form-text small" style={{ color: 'var(--foreground-muted)' }}>
+            Your task will be processed by an isolated AI agent.
+          </div>
         </div>
         <div className="text-end">
           <button
@@ -48,7 +50,7 @@ const JobForm = ({ onJobScheduled }) => {
             className="btn-primary"
             disabled={isLoading}
           >
-            {isLoading ? 'Scheduling...' : 'Schedule'}
+            {isLoading ? 'Scheduling...' : 'Schedule Job'}
           </button>
         </div>
       </form>

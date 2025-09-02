@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
+import { formatDistanceToNow } from 'date-fns';
 
 const API_URL = 'http://localhost:8000';
 
@@ -58,8 +58,8 @@ const JobDetails = ({ job, onClose }) => {
               <p className="mb-0">{job.prompt}</p>
             </div>
             <div className="mb-4">
-              <strong className="d-block small mb-1" style={{ color: 'var(--foreground-muted)' }}>Created At</strong>
-              <span>{new Date(job.created_at).toLocaleString()}</span>
+              <strong className="d-block small mb-1" style={{ color: 'var(--foreground-muted)' }}>Created</strong>
+              <span>{formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}</span>
             </div>
             
             <h6 className="small" style={{ color: 'var(--foreground-muted)' }}>Logs</h6>

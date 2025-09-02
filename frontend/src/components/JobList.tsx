@@ -1,7 +1,7 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { FiInfo, FiTrash2, FiDownload, FiCircle, FiAlertCircle } from 'react-icons/fi';
+import { formatDistanceToNow } from 'date-fns';
 
 const statusConfig = {
   pending: { color: 'var(--foreground-muted)' },
@@ -28,7 +28,7 @@ const JobList = ({ jobs, onShowDetails, onCancel, onDownload }) => {
     return (
       <div className="text-center py-5 mt-5 border-top" style={{ borderColor: 'var(--border)' }}>
         <FiAlertCircle size={24} className="mx-auto mb-3" style={{ color: 'var(--foreground-muted)' }} />
-        <h3 className="h6" style={{ color: 'var(--foreground-muted)' }}>No Jobs Yet</h3>
+        <h3 className="h6" style={{ color: 'var(--foreground-muted)' }}>Your scheduled jobs will appear here.</h3>
       </div>
     );
   }
@@ -51,13 +51,15 @@ const JobList = ({ jobs, onShowDetails, onCancel, onDownload }) => {
               <FiCircle size={8} color={statusConfig[job.status]?.color || 'gray'} style={{ fill: statusConfig[job.status]?.color || 'gray' }} />
               <div className="ms-3">
                 <p className="mb-0 fw-medium">{job.prompt || job.job_id}</p>
-                <small style={{ color: 'var(--foreground-muted)' }}>{new Date(job.created_at).toLocaleString()}</small>
+                <small style={{ color: 'var(--foreground-muted)' }}>
+                  {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
+                </small>
               </div>
             </div>
             <div className="d-flex align-items-center">
-              <button className="btn-ghost" onClick={() => onShowDetails(job)}><FiInfo size={16} /></button>
-              <button className="btn-ghost" onClick={() => onCancel(job.job_id)}><FiTrash2 size={16} /></button>
-              <button className="btn-ghost" onClick={() => onDownload(job.job_id)}><FiDownload size={16} /></button>
+              <button className="btn-ghost" title="View Details" onClick={() => onShowDetails(job)}><FiInfo size={16} /></button>
+              <button className="btn-ghost" title="Cancel Job" onClick={() => onCancel(job.job_id)}><FiTrash2 size={16} /></button>
+              <button className="btn-ghost" title="Download Output" onClick={() => onDownload(job.job_id)}><FiDownload size={16} /></button>
             </div>
           </motion.div>
         ))}
