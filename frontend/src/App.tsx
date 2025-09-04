@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Toaster, toast } from 'react-hot-toast';
@@ -9,12 +8,14 @@ import JobDetails from './components/JobDetails';
 import SystemStats from './components/SystemStats';
 import type { Job } from './components/JobList'; // Import Job interface
 import './App.css';
+import { Routes, Route } from 'react-router-dom';
 
 const API_URL = 'http://localhost:8000';
 
 function App() {
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [filter, setFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   useEffect(() => {
     document.body.className = 'dark';
@@ -37,45 +38,65 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleShowDetails = (job: Job) => setSelectedJob(job);
-  const handleCloseDetails = () => setSelectedJob(null);
-
   const handleCancel = async (jobId: string) => {
-    toast.promise(
-      axios.post(`${API_URL}/cancel/${jobId}`),
-      {
-        loading: 'Cancelling job...',
-        success: () => {
-          fetchJobs();
-          return <b>Job cancelled.</b>;
+    if (window.confirm('Are you sure you want to cancel this job?')) {
+      toast.promise(
+        axios.post(`${API_URL}/cancel/${jobId}`),
+        {
+          loading: 'Cancelling job...',
+          success: () => {
+            fetchJobs();
+            return <b>Job cancelled.</b>;
+          },
+          error: <b>Could not cancel job.</b>,
         },
-        error: <b>Could not cancel job.</b>,
-      },
-      { style: { background: 'var(--card)', color: 'var(--foreground)', border: '1px solid var(--border)' } }
-    );
+        { style: { background: 'var(--card)', color: 'var(--foreground)', border: '1px solid var(--border)' } }
+      );
+    }
   };
 
   const handleDownload = (jobId: string) => {
     window.open(`${API_URL}/download/${jobId}`, '_blank');
   };
 
+  const filteredJobs = jobs.filter(job => {
+    const statusFilter = filter === 'all' || job.status === filter;
+    const searchFilter = job.prompt.toLowerCase().includes(searchQuery.toLowerCase());
+    return statusFilter && searchFilter;
+  });
+
   return (
     <>
       <Toaster position="bottom-right" />
       <Header />
       <main className="container mt-5">
-        <div className="mx-auto" style={{ maxWidth: '720px' }}>
-          <SystemStats jobs={jobs} />
-          <JobForm onJobScheduled={fetchJobs} />
-          <JobList
-            jobs={jobs}
-            onShowDetails={handleShowDetails}
-            onCancel={handleCancel}
-            onDownload={handleDownload}
-          />
-        </div>
+        <Routes>
+          <Route path="/" element={
+            <div className="mx-auto" style={{ maxWidth: '720px' }}>
+              <div className="mb-4">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Search by prompt..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <SystemStats jobs={jobs} />
+              <JobForm onJobScheduled={fetchJobs} />
+              <JobList
+                jobs={filteredJobs}
+                onCancel={handleCancel}
+                onDownload={handleDownload}
+                filter={filter}
+                onFilterChange={setFilter}
+              />
+            </div>
+          } />
+          <Route path="/job/:id" element={<JobDetails />} />
+          <Route path="/stats" element={<SystemStats jobs={jobs} />} />
+        </Routes>
       </main>
-      {selectedJob && <JobDetails job={selectedJob} onClose={handleCloseDetails} />}
     </>
   );
 }

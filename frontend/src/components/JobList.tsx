@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { motion, type Variants, type Transition } from 'framer-motion';
 import { FiInfo, FiTrash2, FiDownload, FiCircle, FiAlertCircle, FiLoader } from 'react-icons/fi';
 import { formatDistanceToNow } from 'date-fns';
+import { Link } from 'react-router-dom';
 
 // Define the type for a single job
 export interface Job {
@@ -15,9 +15,10 @@ export interface Job {
 // Define the type for the component's props
 interface JobListProps {
   jobs: Job[];
-  onShowDetails: (job: Job) => void;
   onCancel: (jobId: string) => void;
   onDownload: (jobId: string) => void;
+  filter: string;
+  onFilterChange: (filter: string) => void;
 }
 
 const statusConfig = {
@@ -27,7 +28,7 @@ const statusConfig = {
   failed: { color: '#ef4444', icon: <FiCircle size={8} style={{ fill: '#ef4444' }} /> },
 };
 
-const JobList: React.FC<JobListProps> = ({ jobs, onShowDetails, onCancel, onDownload }) => {
+const JobList: React.FC<JobListProps> = ({ jobs, onCancel, onDownload, filter, onFilterChange }) => {
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
@@ -56,6 +57,15 @@ const JobList: React.FC<JobListProps> = ({ jobs, onShowDetails, onCancel, onDown
       initial="hidden"
       animate="visible"
     >
+      <div className="d-flex justify-content-center mb-4">
+        <div className="btn-group" role="group">
+          <button type="button" className={`btn btn-sm ${filter === 'all' ? 'btn-primary' : 'btn-outline-secondary'}`} onClick={() => onFilterChange('all')}>All</button>
+          <button type="button" className={`btn btn-sm ${filter === 'pending' ? 'btn-primary' : 'btn-outline-secondary'}`} onClick={() => onFilterChange('pending')}>Pending</button>
+          <button type="button" className={`btn btn-sm ${filter === 'running' ? 'btn-primary' : 'btn-outline-secondary'}`} onClick={() => onFilterChange('running')}>Running</button>
+          <button type="button" className={`btn btn-sm ${filter === 'completed' ? 'btn-primary' : 'btn-outline-secondary'}`} onClick={() => onFilterChange('completed')}>Completed</button>
+          <button type="button" className={`btn btn-sm ${filter === 'failed' ? 'btn-primary' : 'btn-outline-secondary'}`} onClick={() => onFilterChange('failed')}>Failed</button>
+        </div>
+      </div>
       <div className="list-group list-group-flush">
         {jobs.map(job => {
           const isCancelable = job.status === 'pending' || job.status === 'running';
@@ -80,7 +90,7 @@ const JobList: React.FC<JobListProps> = ({ jobs, onShowDetails, onCancel, onDown
                 </div>
               </div>
               <div className="d-flex align-items-center">
-                <button className="btn-ghost" title="View Details" onClick={() => onShowDetails(job)}><FiInfo size={16} /></button>
+                <Link to={`/job/${job.job_id}`} className="btn-ghost" title="View Details"><FiInfo size={16} /></Link>
                 <button 
                   className="btn-ghost" 
                   title={isCancelable ? "Cancel Job" : "Cannot cancel a completed or failed job"} 

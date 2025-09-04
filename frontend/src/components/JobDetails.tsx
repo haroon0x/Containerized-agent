@@ -1,19 +1,36 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 import type { Job } from './JobList';
-
-interface JobDetailsProps {
-  job: Job;
-  onClose: () => void;
-}
+import { useParams, useNavigate } from 'react-router-dom';
 
 const API_URL = 'http://localhost:8000';
 
-const JobDetails: React.FC<JobDetailsProps> = ({ job, onClose }) => {
+const JobDetails: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [job, setJob] = useState<Job | null>(null);
   const [logs, setLogs] = useState('');
   const [isLoadingLogs, setIsLoadingLogs] = useState(false);
+  const [isLoadingJob, setIsLoadingJob] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchJobDetails = async () => {
+      if (!id) return;
+      setIsLoadingJob(true);
+      try {
+        const response = await axios.get(`${API_URL}/job/${id}`);
+        setJob(response.data);
+      } catch (err) {
+        console.error("Error fetching job details:", err);
+        setError('Failed to load job details.');
+      } finally {
+        setIsLoadingJob(false);
+      }
+    };
+    fetchJobDetails();
+  }, [id]);
 
   useEffect(() => {
     if (job) {
@@ -28,60 +45,71 @@ const JobDetails: React.FC<JobDetailsProps> = ({ job, onClose }) => {
     }
   }, [job]);
 
-  if (!job) return null;
+  if (isLoadingJob) {
+    return <div className="text-center mt-5">Loading job details...</div>;
+  }
+
+  if (error) {
+    return <div className="alert alert-danger mt-5">{error}</div>;
+  }
+
+  if (!job) {
+    return <div className="text-center mt-5">Job not found.</div>;
+  }
+
+  const handleDownloadLogs = () => {
+    const blob = new Blob([logs], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${job.job_id}_logs.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   return (
-    <motion.div
-      className="modal show d-block"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
-      onClick={onClose}
-    >
-      <div className="modal-dialog modal-lg modal-dialog-centered" onClick={e => e.stopPropagation()}>
-        <motion.div
-          className="modal-content"
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 20, opacity: 0 }}
-        >
-          <div className="modal-header border-0">
-            <h5 className="modal-title h6">Job Details</h5>
-            <button type="button" className="btn-close-white" onClick={onClose}></button>
-          </div>
-          <div className="modal-body">
-            <div className="mb-4">
-              <strong className="d-block small mb-1" style={{ color: 'var(--foreground-muted)' }}>Job ID</strong>
-              <span className="font-monospace">{job.job_id}</span>
-            </div>
-            <div className="mb-4">
-              <strong className="d-block small mb-1" style={{ color: 'var(--foreground-muted)' }}>Status</strong>
-              <span>{job.status}</span>
-            </div>
-            <div className="mb-4">
-              <strong className="d-block small mb-1" style={{ color: 'var(--foreground-muted)' }}>Prompt</strong>
-              <p className="mb-0">{job.prompt}</p>
-            </div>
-            <div className="mb-4">
-              <strong className="d-block small mb-1" style={{ color: 'var(--foreground-muted)' }}>Created</strong>
-              <span>{formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}</span>
-            </div>
-            
-            <h6 className="small" style={{ color: 'var(--foreground-muted)' }}>Logs</h6>
-            <pre className="p-3 rounded small" style={{ 
-              backgroundColor: 'var(--background)', 
-              minHeight: '200px', 
-              maxHeight: '400px', 
-              overflowY: 'auto',
-              border: '1px solid var(--border)'
-            }}>
-              {isLoadingLogs ? 'Loading logs...' : <code className='font-monospace'>{logs}</code>}
-            </pre>
-          </div>
-        </motion.div>
+    <div className="container mt-5">
+      <div className="card p-4 shadow-sm">
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <h5 className="card-title h6 mb-0">Job Details</h5>
+          <button type="button" className="btn-close" aria-label="Close" onClick={() => navigate(-1)}></button>
+        </div>
+        <div className="mb-3">
+          <strong className="d-block small mb-1" style={{ color: 'var(--foreground-muted)' }}>Job ID</strong>
+          <span className="font-monospace">{job.job_id}</span>
+        </div>
+        <div className="mb-3">
+          <strong className="d-block small mb-1" style={{ color: 'var(--foreground-muted)' }}>Status</strong>
+          <span>{job.status}</span>
+        </div>
+        <div className="mb-3">
+          <strong className="d-block small mb-1" style={{ color: 'var(--foreground-muted)' }}>Prompt</strong>
+          <p className="mb-0">{job.prompt}</p>
+        </div>
+        <div className="mb-3">
+          <strong className="d-block small mb-1" style={{ color: 'var(--foreground-muted)' }}>Created</strong>
+          <span>{formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}</span>
+        </div>
+
+        <div className="d-flex justify-content-between align-items-center mb-2">
+          <h6 className="small mb-0" style={{ color: 'var(--foreground-muted)' }}>Logs</h6>
+          <button className="btn btn-sm btn-outline-secondary" onClick={handleDownloadLogs} disabled={!logs || isLoadingLogs}>
+            Download Logs
+          </button>
+        </div>
+        <pre className="p-3 rounded small" style={{
+          backgroundColor: 'var(--background)',
+          minHeight: '200px',
+          maxHeight: '400px',
+          overflowY: 'auto',
+          border: '1px solid var(--border)'
+        }}>
+          {isLoadingLogs ? 'Loading logs...' : <code className='font-monospace'>{logs}</code>}
+        </pre>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
