@@ -1,0 +1,15 @@
+
+.card {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.list-group-item {
+  background-color: transparent;
+  border-bottom: 1px solid var(--border);
+}
+
+.list-group-item:last-child {
+  border-bottom: none;
+}
