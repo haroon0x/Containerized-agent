@@ -2,8 +2,18 @@
 
 ## Overview
 The `JobManager` class is responsible for launching, tracking, and cleaning up jobs (agent containers) in the containerized-agent system. It ensures jobs are reliably managed, persisted, and their outputs are accessible.
-
+Start here: https://docker-py.readthedocs.io/en/stable/ (https://docker-py.readthedocs.io/en/stable/)
 ---
+
+#### API Responsiveness and User Experience:
+       * Problem: Docker operations (pulling images, starting containers, waiting for them to
+         initialize) can take time. If your API server directly calls docker-py and waits for
+         the operation to complete, the user's HTTP request will hang until Docker responds.
+         This leads to slow API responses, potential timeouts, and a poor user experience.
+       * Solution: The API server should quickly submit the job request to the job management
+         component (e.g., by putting it in a queue or calling a dedicated job service
+         endpoint) and immediately return a 202 Accepted response with a job ID. The client
+         can then poll a separate status endpoint to check on the job's progress.
 
 ## Key Features
 

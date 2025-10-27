@@ -4,19 +4,12 @@ import uuid
 from typing import Any, Dict
 from fastapi import FastAPI, BackgroundTasks, Request, Query, Depends, HTTPException, status
 from fastapi.responses import JSONResponse, FileResponse
-from pydantic import BaseModel
 from src.orchestrator.api.job_manager import job_manager
-from src.orchestrator.api.monitoring import router as monitoring_router
+from schema import ScheduleRequest
 
 logging.basicConfig(level=logging.INFO)
 
 app = FastAPI()
-
-# Include monitoring endpoints
-app.include_router(monitoring_router, prefix="/monitoring", tags=["monitoring"])
-
-class ScheduleRequest(BaseModel):
-    prompt: str
 
 def is_valid_job_id(job_id: str) -> bool:
     try:
